@@ -51,6 +51,7 @@ EARLY_STOPPING_ROUNDS = 50
 MIN_RACE_RUNNERS = 12   # 最低出走頭数
 MIN_TOP1_ODDS = 3.8     # 1番人気の最低オッズ（堅いレースを除外）
 VOLATILE_THRESHOLD = 0.0 # 全レースでTOP3ボックス6点
+MIN_PRED_GAP = 0.02     # TOP3とTOP4の予測スコア差が小さいレースをスキップ
 
 # ---------------------------------------------------------------------------
 # Feature Engineering (edit this function)
@@ -212,6 +213,11 @@ def select_trifecta_bets(
 
         # 同スコア時の行順リークを防止するためシャッフル
         group = group.sample(frac=1, random_state=42)
+
+        # TOP3とTOP4の予測スコア差が小さい→モデルの確信度が低い→スキップ
+        sorted_preds = group["pred"].sort_values(ascending=False).values
+        if len(sorted_preds) >= 4 and (sorted_preds[2] - sorted_preds[3]) < MIN_PRED_GAP:
+            continue
 
         # 動的点数: 荒れるレース→TOP3ボックス(6点)、堅め→1着固定(2点)
         if min_odds_in_race >= VOLATILE_THRESHOLD:
