@@ -215,8 +215,12 @@ def select_trifecta_bets(
         group = group.sample(frac=1, random_state=42)
 
         # TOP3とTOP4の予測スコア差が小さい→モデルの確信度が低い→スキップ
+        # TOP3-TOP4ギャップとTOP1-TOP4ギャップの両方をチェック
         sorted_preds = group["pred"].sort_values(ascending=False).values
         if len(sorted_preds) >= 4 and (sorted_preds[2] - sorted_preds[3]) < MIN_PRED_GAP:
+            continue
+        # TOP1がTOP4から十分離れていない→3着以内の予測に自信なし→スキップ
+        if len(sorted_preds) >= 4 and (sorted_preds[0] - sorted_preds[3]) < 0.05:
             continue
 
         # 動的点数: 荒れるレース→TOP3ボックス(6点)、堅め→1着固定(2点)
