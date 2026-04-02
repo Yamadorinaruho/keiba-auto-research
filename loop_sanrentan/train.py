@@ -164,6 +164,14 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[f"{col}_code"] = df[col].astype("category").cat.codes
 
+    # --- 人気（順位）---
+    if "人気" in df.columns:
+        df["人気_num"] = pd.to_numeric(df["人気"], errors="coerce")
+
+    # --- 複勝シェア ---
+    if "複勝シェア" in df.columns:
+        df["複勝シェア_num"] = pd.to_numeric(df["複勝シェア"], errors="coerce")
+
     return df
 
 
@@ -248,7 +256,7 @@ def main():
     # 特徴量: 競馬ドメイン知識ベースの手動選択
     feature_cols = [
         # 今走の市場評価
-        "単勝オッズ",
+        "単勝オッズ", "人気_num", "複勝シェア_num",
         # 前走の実績
         "前走着順_num", "前走top3",
         # 前走の市場評価
