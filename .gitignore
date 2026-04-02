@@ -1,0 +1,9 @@
+*.csv
+__pycache__/
+*.pyc
+.venv/
+run.log
+results.tsv
+progress.png
+*.egg-info/
+uv.lock
