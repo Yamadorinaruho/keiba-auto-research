@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import json
+import math
 from itertools import permutations
 
 import numpy as np
@@ -343,6 +344,64 @@ def main():
 
     t_end = time.time()
     print(f"\ntotal_seconds:    {t_end - t_start:.1f}")
+
+    # --- リスク指標算出 ---
+    if result.monthly_roi and len(result.monthly_roi) > 1:
+        values = np.array([result.monthly_roi[m] for m in sorted(result.monthly_roi.keys())])
+        returns = (values - 100) / 100  # 月次超過リターン
+
+        # Sortino（下方偏差のみ）
+        downside = returns[returns < 0]
+        downside_std = np.sqrt(np.mean(downside**2)) if len(downside) > 0 else 0
+        sortino = np.mean(returns) / downside_std * math.sqrt(12) if downside_std > 0 else 0
+
+        # MDD（月次累積P&Lベース）
+        monthly_bets = result.annual_bets / 12
+        monthly_wagered = monthly_bets * result.avg_combos_per_race * 100
+        monthly_pnl = [(v / 100 - 1) * monthly_wagered for v in values]
+        cum_pnl = np.cumsum(monthly_pnl)
+        peak = np.maximum.accumulate(cum_pnl)
+        dd_yen = cum_pnl - peak
+        mdd_yen = abs(dd_yen.min())
+        peak_at_mdd = peak[np.argmin(dd_yen)]
+        mdd_pct = (mdd_yen / peak_at_mdd * 100) if peak_at_mdd > 0 else 0
+
+        # 最大連続赤字月
+        streak = max_streak = 0
+        for r in returns:
+            if r < 0:
+                streak += 1
+                max_streak = max(max_streak, streak)
+            else:
+                streak = 0
+
+        # ケリー基準 & 破産確率
+        p = result.hit_rate / 100
+        if p > 0:
+            b = result.roi / 100 / p - 1
+            kelly = p - (1 - p) / b if b > 0 else 0
+            ruin_factor = (1 - p) / (p * (1 + b)) if b > 0 else 1.0
+            ruin_100 = ruin_factor ** 100 if ruin_factor < 1 else 1.0
+        else:
+            b = kelly = 0
+            ruin_100 = 1.0
+
+        # 年間利益
+        annual_wagered = result.annual_bets * result.avg_combos_per_race * 100
+        annual_profit = annual_wagered * (result.roi / 100 - 1)
+
+        win_m = sum(1 for v in values if v >= 100)
+        lose_m = sum(1 for v in values if v < 100)
+
+        print(f"sortino:          {sortino:.3f}")
+        print(f"mdd_pct:          {mdd_pct:.1f}%")
+        print(f"mdd_yen:          {mdd_yen:,.0f}")
+        print(f"max_losing_streak:{max_streak}")
+        print(f"win_lose_months:  {win_m}/{lose_m}")
+        print(f"kelly_fraction:   {kelly:.4f}")
+        print(f"ruin_prob_100:    {ruin_100:.8f}")
+        print(f"annual_profit:    {annual_profit:+,.0f}")
+        print(f"monthly_roi_json: {json.dumps(result.monthly_roi, ensure_ascii=False)}")
 
     # 自動ログ
     results_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results.tsv")
