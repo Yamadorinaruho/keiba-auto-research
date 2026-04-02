@@ -30,7 +30,7 @@ LGBM_PARAMS = {
     "metric": "binary_logloss",
     "boosting_type": "gbdt",
     "learning_rate": 0.10,
-    "num_leaves": 75,
+    "num_leaves": 100,
     "max_depth": -1,
     "min_child_samples": 20,
     "feature_fraction": 0.8,
