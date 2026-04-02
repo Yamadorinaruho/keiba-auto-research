@@ -172,6 +172,10 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     if "複勝シェア" in df.columns:
         df["複勝シェア_num"] = pd.to_numeric(df["複勝シェア"], errors="coerce")
 
+    # --- 複勝オッズ下限 ---
+    if "複勝オッズ下限" in df.columns:
+        df["複勝オッズ下限_num"] = pd.to_numeric(df["複勝オッズ下限"], errors="coerce")
+
     return df
 
 
@@ -256,7 +260,7 @@ def main():
     # 特徴量: 競馬ドメイン知識ベースの手動選択
     feature_cols = [
         # 今走の市場評価
-        "単勝オッズ", "人気_num", "複勝シェア_num",
+        "単勝オッズ", "人気_num", "複勝シェア_num", "複勝オッズ下限_num",
         # 前走の実績
         "前走着順_num", "前走top3",
         # 前走の市場評価
