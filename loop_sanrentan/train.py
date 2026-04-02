@@ -164,6 +164,28 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[f"{col}_code"] = df[col].astype("category").cat.codes
 
+    # --- 人気（市場の総意）---
+    if "人気" in df.columns:
+        df["人気_num"] = pd.to_numeric(df["人気"], errors="coerce")
+
+    # --- キャリア ---
+    if "キャリア" in df.columns:
+        df["キャリア_num"] = pd.to_numeric(df["キャリア"], errors="coerce")
+
+    # --- 複勝オッズ・シェア ---
+    if "複勝オッズ下限" in df.columns:
+        df["複勝オッズ下限_num"] = pd.to_numeric(df["複勝オッズ下限"], errors="coerce")
+    if "複勝シェア" in df.columns:
+        df["複勝シェア_num"] = pd.to_numeric(df["複勝シェア"], errors="coerce")
+
+    # --- レース内相対特徴量 ---
+    if "単勝オッズ" in df.columns and "race_id" in df.columns:
+        odds = pd.to_numeric(df["単勝オッズ"], errors="coerce")
+        race_mean = odds.groupby(df["race_id"]).transform("mean")
+        race_std = odds.groupby(df["race_id"]).transform("std").clip(lower=0.01)
+        df["odds_zscore"] = (odds - race_mean) / race_std
+        df["odds_rank"] = odds.groupby(df["race_id"]).rank(method="min")
+
     return df
 
 
@@ -248,21 +270,29 @@ def main():
     # 特徴量: 競馬ドメイン知識ベースの手動選択
     feature_cols = [
         # 今走の市場評価
-        "単勝オッズ",
+        "単勝オッズ", "人気_num", "odds_zscore", "odds_rank",
+        "log_latest_pre_odds", "latest_pre_ninki",
+        "複勝オッズ下限_num", "複勝シェア_num",
+        # オッズ変動
+        "オッズ変動_early_to_latest", "オッズ変動率_early_to_latest",
         # 前走の実績
         "前走着順_num", "前走top3",
         # 前走の市場評価
         "前走log_odds", "前走着順_人気差",
         # コース条件
-        "場所_code", "芝ダ_code", "馬場_code",
+        "場所_code", "芝ダ_code", "馬場_code", "天気_code", "コース区分_code",
         # 馬の基本属性
-        "年齢", "性別_code", "斤量_num",
+        "年齢", "性別_code", "斤量_num", "所属_code",
+        # 血統
+        "父タイプ名_code", "母父タイプ名_code",
         # レース条件
         "頭数", "馬番比率",
         # 状態
-        "間隔_num", "走前",
+        "間隔_num", "走前", "休み明け", "キャリア_num",
         # 追加
         "枠番", "距離",
+        # クロス特徴量
+        "距離x馬場", "距離x芝ダ",
     ]
     # 存在しないカラムを除外
     feature_cols = [c for c in feature_cols if c in df.columns]
