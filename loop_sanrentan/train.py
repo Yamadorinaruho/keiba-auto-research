@@ -220,7 +220,7 @@ def select_trifecta_bets(
         if len(sorted_preds) >= 4 and (sorted_preds[2] - sorted_preds[3]) < MIN_PRED_GAP:
             continue
         # TOP1がTOP4から十分離れていない→3着以内の予測に自信なし→スキップ
-        if len(sorted_preds) >= 4 and (sorted_preds[0] - sorted_preds[3]) < 0.05:
+        if len(sorted_preds) >= 4 and (sorted_preds[0] - sorted_preds[3]) < 0.06:
             continue
 
         # 動的点数: 荒れるレース→TOP3ボックス(6点)、堅め→1着固定(2点)
