@@ -51,7 +51,7 @@ EARLY_STOPPING_ROUNDS = 50
 MIN_RACE_RUNNERS = 12   # 最低出走頭数
 MIN_TOP1_ODDS = 3.8     # 1番人気の最低オッズ（堅いレースを除外）
 VOLATILE_THRESHOLD = 0.0 # 全レースでTOP3ボックス6点
-MIN_PRED_GAP = 0.02     # TOP3とTOP4の予測スコア差が小さいレースをスキップ
+MIN_PRED_GAP = 0.015    # TOP3とTOP4の予測スコア差が小さいレースをスキップ
 
 # ---------------------------------------------------------------------------
 # Feature Engineering (edit this function)
