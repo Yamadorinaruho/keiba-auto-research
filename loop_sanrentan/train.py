@@ -48,7 +48,7 @@ NUM_BOOST_ROUND = 500
 EARLY_STOPPING_ROUNDS = 50
 
 # 三連単賭け戦略パラメータ
-MIN_RACE_RUNNERS = 10   # 最低出走頭数
+MIN_RACE_RUNNERS = 9    # 最低出走頭数
 MIN_TOP1_ODDS = 3.3     # 1番人気の最低オッズ（堅いレースを除外）
 VOLATILE_THRESHOLD = 3.8 # 荒れるレース→6点、堅め→2点
 MIN_PRED_GAP = 0.007    # TOP3-TOP4スコアギャップ
@@ -182,6 +182,57 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     if "前走上り3F" in df.columns:
         df["前走上り3F_num"] = pd.to_numeric(df["前走上り3F"], errors="coerce")
 
+    # --- 前走着差タイム ---
+    if "前走着差タイム" in df.columns:
+        df["前走着差_num"] = pd.to_numeric(df["前走着差タイム"], errors="coerce")
+
+    # --- 前走RPCI ---
+    if "前走RPCI" in df.columns:
+        df["前走RPCI_num"] = pd.to_numeric(df["前走RPCI"], errors="coerce")
+
+    # --- 前走場所 ---
+    if "前走場所" in df.columns:
+        df["前走場所_code"] = df["前走場所"].astype("category").cat.codes
+
+    # --- 前走馬場状態 ---
+    if "前走馬場状態" in df.columns:
+        df["前走馬場_code"] = df["前走馬場状態"].astype("category").cat.codes
+
+    # --- 前走4角通過順位 ---
+    if "前4角" in df.columns:
+        df["前走4角_num"] = pd.to_numeric(df["前4角"], errors="coerce")
+
+    # --- 曜日 ---
+    if "曜日" in df.columns:
+        df["曜日_code"] = df["曜日"].astype("category").cat.codes
+
+    # --- オッズ評価変化 ---
+    if "単勝オッズ" in df.columns and "前走単勝オッズ" in df.columns:
+        cur_odds = pd.to_numeric(df["単勝オッズ"], errors="coerce")
+        prev_odds = pd.to_numeric(df["前走単勝オッズ"], errors="coerce")
+        df["オッズ評価変化"] = cur_odds / prev_odds.clip(lower=1)
+
+    # --- 距離変更 ---
+    if "距離" in df.columns and "前距離" in df.columns:
+        cur_dist = pd.to_numeric(df["距離"], errors="coerce")
+        prev_dist = pd.to_numeric(df["前距離"], errors="coerce")
+        df["距離変更率"] = cur_dist / prev_dist.clip(lower=1)
+        df["同距離"] = (cur_dist == prev_dist).astype(float)
+
+    # --- 指定条件 ---
+    if "指定条件" in df.columns:
+        df["指定_code"] = df["指定条件"].astype("category").cat.codes
+
+    # --- 斤量変化 ---
+    if "斤量" in df.columns and "前走斤量" in df.columns:
+        cur_k = pd.to_numeric(df["斤量"], errors="coerce")
+        prev_k = pd.to_numeric(df["前走斤量"], errors="coerce")
+        df["斤量変化"] = cur_k - prev_k
+
+    # --- コース替え（芝⇔ダ） ---
+    if "芝・ダ" in df.columns and "前芝・ダ" in df.columns:
+        df["コース替え"] = (df["芝・ダ"] != df["前芝・ダ"]).astype(float)
+
     # --- 調教師年齢 ---
     if "調教師年齢" in df.columns:
         df["調教師年齢_num"] = pd.to_numeric(df["調教師年齢"], errors="coerce")
@@ -251,6 +302,9 @@ def select_trifecta_bets(
         else:
             # 堅めレースはより厳しい確信度を要求
             if len(sorted_preds) >= 2 and (sorted_preds[0] - sorted_preds[1]) < 0.005:
+                continue
+            # 堅めはTOP3-4ギャップも厳しく
+            if len(sorted_preds) >= 4 and (sorted_preds[2] - sorted_preds[3]) < 0.008:
                 continue
             top3 = group.nlargest(3, "pred")
             hn = top3["umaban"].astype(int).values
