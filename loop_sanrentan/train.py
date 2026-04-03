@@ -178,6 +178,10 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     if "複勝オッズ下限" in df.columns:
         df["複勝オッズ下限_num"] = pd.to_numeric(df["複勝オッズ下限"], errors="coerce")
 
+    # --- 前走上り3F ---
+    if "前走上り3F" in df.columns:
+        df["前走上り3F_num"] = pd.to_numeric(df["前走上り3F"], errors="coerce")
+
     # --- 調教師年齢 ---
     if "調教師年齢" in df.columns:
         df["調教師年齢_num"] = pd.to_numeric(df["調教師年齢"], errors="coerce")
@@ -245,6 +249,9 @@ def select_trifecta_bets(
             top = group.nlargest(3, "pred")
             combos = list(permutations(top["umaban"].astype(int).values, 3))
         else:
+            # 堅めレースはより厳しい確信度を要求
+            if len(sorted_preds) >= 2 and (sorted_preds[0] - sorted_preds[1]) < 0.005:
+                continue
             top3 = group.nlargest(3, "pred")
             hn = top3["umaban"].astype(int).values
             combos = [(hn[0], hn[1], hn[2]), (hn[0], hn[2], hn[1])]
