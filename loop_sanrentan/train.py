@@ -198,6 +198,87 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     if "前走馬場状態" in df.columns:
         df["前走馬場_code"] = df["前走馬場状態"].astype("category").cat.codes
 
+    # --- 前走単勝オッズ生値 ---
+    if "前走単勝オッズ" in df.columns:
+        df["前走単勝オッズ_raw"] = pd.to_numeric(df["前走単勝オッズ"], errors="coerce")
+
+    # --- 複勝オッズ上限 ---
+    if "複勝オッズ上限" in df.columns:
+        df["複勝オッズ上限_num"] = pd.to_numeric(df["複勝オッズ上限"], errors="coerce")
+
+    # --- 騎手乗り替わり ---
+    if "替" in df.columns:
+        df["乗替_flag"] = (df["替"] == "*").astype(float)
+
+    # --- ブリンカー ---
+    if "ブリンカー" in df.columns:
+        df["ブリンカー_flag"] = (df["ブリンカー"] == "B").astype(float)
+    if "前走B" in df.columns:
+        df["前走B_flag"] = (df["前走B"] == "B").astype(float)
+    else:
+        df["前走B_flag"] = 0.0
+
+    # --- 前走決め手 + 前PCI ---
+    if "前走決め手" in df.columns:
+        df["前走決め手_code"] = df["前走決め手"].astype("category").cat.codes
+    if "前PCI" in df.columns:
+        df["前PCI_num"] = pd.to_numeric(df["前PCI"], errors="coerce")
+
+    # --- 時系列オッズトレンド ---
+    # 時系1と時系4のオッズ変化方向（下がれば支持増）
+    if "指時系1・単勝" in df.columns and "指時系4・単勝" in df.columns:
+        t1 = pd.to_numeric(df["指時系1・単勝"], errors="coerce").replace(0, np.nan)
+        t4 = pd.to_numeric(df["指時系4・単勝"], errors="coerce").replace(0, np.nan)
+        # 正=支持減（オッズ上昇）、負=支持増（オッズ下降）
+        df["odds_trend"] = (t4 - t1) / t1.clip(lower=0.1)
+    # 時系1と時系4の人気変動
+    if "指時系1・人気" in df.columns and "指時系4・人気" in df.columns:
+        n1 = pd.to_numeric(df["指時系1・人気"], errors="coerce").replace(0, np.nan)
+        n4 = pd.to_numeric(df["指時系4・人気"], errors="coerce").replace(0, np.nan)
+        df["ninki_trend"] = n4 - n1  # 正=人気低下、負=人気上昇
+
+    # --- レース内集計特徴量 ---
+    if "race_id" in df.columns and "単勝オッズ" in df.columns:
+        odds = pd.to_numeric(df["単勝オッズ"], errors="coerce")
+        inv_odds = 1 / odds.clip(lower=1)
+        race_inv_sum = inv_odds.groupby(df["race_id"]).transform("sum")
+        # この馬のオッズ集中度（逆オッズシェア）
+        df["odds_share"] = inv_odds / race_inv_sum.clip(lower=0.01)
+        # レース内のオッズ平均（レースの荒れ具合）
+        df["race_odds_mean"] = odds.groupby(df["race_id"]).transform("mean")
+        # レース内のオッズ最小（1番人気のオッズ）
+        df["race_odds_min"] = odds.groupby(df["race_id"]).transform("min")
+
+    # --- クロス・派生特徴量 ---
+    # 複勝オッズ下限/単勝オッズ比率（複勝市場と単勝市場の乖離）
+    if "複勝オッズ下限" in df.columns and "単勝オッズ" in df.columns:
+        fuku = pd.to_numeric(df["複勝オッズ下限"], errors="coerce")
+        tan = pd.to_numeric(df["単勝オッズ"], errors="coerce")
+        df["複単比"] = fuku / tan.clip(lower=1)
+    # 人気と馬番のギャップ（内枠有利の指標）
+    if "人気" in df.columns and "馬番" in df.columns:
+        ninki = pd.to_numeric(df["人気"], errors="coerce")
+        umaban = pd.to_numeric(df["馬番"], errors="coerce")
+        df["人気馬番差"] = ninki - umaban
+    # 単勝オッズの対数（低オッズ帯をよりなだらかに）
+    if "単勝オッズ" in df.columns:
+        df["log_単勝オッズ"] = np.log1p(pd.to_numeric(df["単勝オッズ"], errors="coerce"))
+    # 場所×芝ダ（コース固有）
+    if "場所_code" in df.columns and "芝ダ_code" in df.columns:
+        df["場所x芝ダ"] = df["場所_code"] * 10 + df["芝ダ_code"]
+    # 斤量/年齢（経験に対する負荷）
+    if "斤量_num" in df.columns and "年齢" in df.columns:
+        age = pd.to_numeric(df["年齢"], errors="coerce")
+        df["斤量_年齢比"] = df["斤量_num"] / age.clip(lower=2)
+
+    # --- 前走系一括 ---
+    for col, out in [("前走頭数", "前走頭数_num"), ("前走馬番", "前走馬番_num"),
+                      ("前走複勝オッズ下限", "前走複勝オッズ下限_num2"), ("前走複勝シェア", "前走複勝シェア_num2"),
+                      ("前走枠番", "前走枠番_num"), ("騎手年齢", "騎手年齢_num"),
+                      ("斤量体重比", "斤量体重比_num"), ("競走種別", "競走種別_num")]:
+        if col in df.columns:
+            df[out] = pd.to_numeric(df[col], errors="coerce")
+
     # --- 重量種別 ---
     if "重量種別" in df.columns:
         df["重量種別_code"] = df["重量種別"].astype("category").cat.codes
@@ -350,7 +431,6 @@ def main():
     race_trifecta = build_race_trifecta(test)
     print(f"  Races with trifecta result: {len(race_trifecta):,}")
 
-    # 特徴量: 競馬ドメイン知識ベースの手動選択
     feature_cols = [
         # 今走の市場評価
         "単勝オッズ", "人気_num", "複勝シェア_num", "複勝オッズ下限_num",
