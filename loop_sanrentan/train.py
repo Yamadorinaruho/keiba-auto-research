@@ -48,7 +48,7 @@ NUM_BOOST_ROUND = 500
 EARLY_STOPPING_ROUNDS = 50
 
 # 三連単賭け戦略パラメータ
-MIN_RACE_RUNNERS = 12   # 最低出走頭数
+MIN_RACE_RUNNERS = 11   # 最低出走頭数
 MIN_TOP1_ODDS = 3.3     # 1番人気の最低オッズ（堅いレースを除外）
 VOLATILE_THRESHOLD = 3.8 # 荒れるレース→6点、堅め→2点
 MIN_PRED_GAP = 0.007    # TOP3-TOP4スコアギャップ
@@ -178,6 +178,17 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     if "複勝オッズ下限" in df.columns:
         df["複勝オッズ下限_num"] = pd.to_numeric(df["複勝オッズ下限"], errors="coerce")
 
+    # --- 調教師年齢 ---
+    if "調教師年齢" in df.columns:
+        df["調教師年齢_num"] = pd.to_numeric(df["調教師年齢"], errors="coerce")
+
+    # --- 複勝シェア×単勝オッズ乖離 ---
+    if "複勝シェア" in df.columns and "単勝オッズ" in df.columns:
+        fuku_share = pd.to_numeric(df["複勝シェア"], errors="coerce")
+        tan_odds = pd.to_numeric(df["単勝オッズ"], errors="coerce")
+        # 複勝シェアが高い（人気）のに単勝オッズが高い（不人気）→市場割れ
+        df["市場乖離度"] = fuku_share * np.log1p(tan_odds)
+
     return df
 
 
@@ -221,6 +232,9 @@ def select_trifecta_bets(
             continue
         # TOP1-TOP4の分離度
         if len(sorted_preds) >= 4 and (sorted_preds[0] - sorted_preds[3]) < 0.025:
+            continue
+        # TOP1-TOP2の分離度（1着候補が明確）
+        if len(sorted_preds) >= 2 and (sorted_preds[0] - sorted_preds[1]) < 0.003:
             continue
 
         # 動的点数: 荒れるレース→TOP3ボックス(6点)、堅め→1着固定(2点)
