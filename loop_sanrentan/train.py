@@ -48,7 +48,7 @@ NUM_BOOST_ROUND = 500
 EARLY_STOPPING_ROUNDS = 50
 
 # 三連単賭け戦略パラメータ
-MIN_RACE_RUNNERS = 11   # 最低出走頭数
+MIN_RACE_RUNNERS = 10   # 最低出走頭数
 MIN_TOP1_ODDS = 3.3     # 1番人気の最低オッズ（堅いレースを除外）
 VOLATILE_THRESHOLD = 3.8 # 荒れるレース→6点、堅め→2点
 MIN_PRED_GAP = 0.007    # TOP3-TOP4スコアギャップ
@@ -235,6 +235,9 @@ def select_trifecta_bets(
             continue
         # TOP1-TOP2の分離度（1着候補が明確）
         if len(sorted_preds) >= 2 and (sorted_preds[0] - sorted_preds[1]) < 0.003:
+            continue
+        # TOP2-TOP3の分離度（2着候補が明確）
+        if len(sorted_preds) >= 3 and (sorted_preds[1] - sorted_preds[2]) < 0.002:
             continue
 
         # 動的点数: 荒れるレース→TOP3ボックス(6点)、堅め→1着固定(2点)
