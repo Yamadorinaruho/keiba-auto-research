@@ -222,6 +222,9 @@ def select_trifecta_bets(
         # TOP1がTOP4から十分離れていない→3着以内の予測に自信なし→スキップ
         if len(sorted_preds) >= 4 and (sorted_preds[0] - sorted_preds[3]) < 0.07:
             continue
+        # TOP2-TOP3のギャップが小さい→3着候補が不確実→スキップ
+        if len(sorted_preds) >= 4 and (sorted_preds[1] - sorted_preds[2]) < 0.01:
+            continue
 
         # 動的点数: 荒れるレース→TOP3ボックス(6点)、堅め→1着固定(2点)
         if min_odds_in_race >= VOLATILE_THRESHOLD:
