@@ -198,6 +198,10 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     if "前走馬場状態" in df.columns:
         df["前走馬場_code"] = df["前走馬場状態"].astype("category").cat.codes
 
+    # --- 重量種別 ---
+    if "重量種別" in df.columns:
+        df["重量種別_code"] = df["重量種別"].astype("category").cat.codes
+
     # --- 前走4角通過順位 ---
     if "前4角" in df.columns:
         df["前走4角_num"] = pd.to_numeric(df["前4角"], errors="coerce")
