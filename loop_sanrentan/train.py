@@ -49,9 +49,9 @@ EARLY_STOPPING_ROUNDS = 50
 
 # 三連単賭け戦略パラメータ
 MIN_RACE_RUNNERS = 12   # 最低出走頭数
-MIN_TOP1_ODDS = 4.0     # 1番人気の最低オッズ（堅いレースを除外）
+MIN_TOP1_ODDS = 3.3     # 1番人気の最低オッズ（堅いレースを除外）
 VOLATILE_THRESHOLD = 0.0 # 全レースでTOP3ボックス6点
-MIN_PRED_GAP = 0.025    # TOP3とTOP4の予測スコア差が小さいレースをスキップ
+MIN_PRED_GAP = 0.007    # TOP3-TOP4スコアギャップ
 
 # ---------------------------------------------------------------------------
 # Feature Engineering (edit this function)
@@ -219,14 +219,8 @@ def select_trifecta_bets(
         sorted_preds = group["pred"].sort_values(ascending=False).values
         if len(sorted_preds) >= 4 and (sorted_preds[2] - sorted_preds[3]) < MIN_PRED_GAP:
             continue
-        # TOP1がTOP4から十分離れていない→3着以内の予測に自信なし→スキップ
-        if len(sorted_preds) >= 4 and (sorted_preds[0] - sorted_preds[3]) < 0.07:
-            continue
-        # TOP2-TOP3のギャップが小さい→3着候補が不確実→スキップ
-        if len(sorted_preds) >= 4 and (sorted_preds[1] - sorted_preds[2]) < 0.01:
-            continue
-        # TOP1-TOP2のギャップが小さい→1着候補も不確実→スキップ
-        if len(sorted_preds) >= 3 and (sorted_preds[0] - sorted_preds[1]) < 0.01:
+        # TOP1-TOP4の分離度
+        if len(sorted_preds) >= 4 and (sorted_preds[0] - sorted_preds[3]) < 0.025:
             continue
 
         # 動的点数: 荒れるレース→TOP3ボックス(6点)、堅め→1着固定(2点)
