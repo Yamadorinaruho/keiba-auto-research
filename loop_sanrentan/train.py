@@ -50,7 +50,7 @@ EARLY_STOPPING_ROUNDS = 50
 # 三連単賭け戦略パラメータ
 MIN_RACE_RUNNERS = 12   # 最低出走頭数
 MIN_TOP1_ODDS = 3.3     # 1番人気の最低オッズ（堅いレースを除外）
-VOLATILE_THRESHOLD = 4.0 # 荒れるレース→6点、堅め→2点
+VOLATILE_THRESHOLD = 3.8 # 荒れるレース→6点、堅め→2点
 MIN_PRED_GAP = 0.007    # TOP3-TOP4スコアギャップ
 
 # ---------------------------------------------------------------------------
