@@ -1,6 +1,6 @@
 """
 競馬三連単回収率改善ループ — 特徴量・モデル・戦略（このファイルを編集する）
-Usage: uv run train.py
+Usage: uv run train.py [seed]
 """
 
 import os
@@ -41,7 +41,7 @@ LGBM_PARAMS = {
     "lambda_l2": 0.1,
     "verbose": -1,
     "n_jobs": -1,
-    "seed": 42,
+    "seed": int(sys.argv[1]) if len(sys.argv) > 1 else 42,
 }
 
 NUM_BOOST_ROUND = 500
