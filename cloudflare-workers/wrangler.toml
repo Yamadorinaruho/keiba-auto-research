@@ -1,0 +1,16 @@
+name = "keiba-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 binding — the same name used in src/types.ts (Bindings.KEIBA_DB).
+# Fill in `database_id` once the D1 database is provisioned via
+#   wrangler d1 create keiba
+[[d1_databases]]
+binding = "KEIBA_DB"
+database_name = "keiba"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Optional: enable observability for prod debugging.
+[observability]
+enabled = true

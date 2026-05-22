@@ -1,0 +1,246 @@
+name: picks weekly
+# 週次自動 picks 生成 + Discord 通知 + リポへコミット
+# 金曜 23:00 JST (= 金 14:00 UTC) に翌週末(土・日) の picks を生成
+# Cron は UTC。JST = UTC + 9
+
+on:
+  schedule:
+    - cron: "0 14 * * 5"   # 金 14:00 UTC = 金 23:00 JST
+  workflow_dispatch: {}
+
+permissions:
+  contents: write   # picks.json を main にコミットするため必要
+
+jobs:
+  picks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # picks/scrape 経路で必要なものだけ
+          pip install numpy pandas requests beautifulsoup4 lxml
+
+      - name: Check keiba.db presence
+        # runner.py picks は plot_wealth_data 経由で keiba.db 全件スキャンするため
+        # フルDBが必須。現状リポには含まれていない (1.1GB)。
+        # TODO: DB配布方法が決まるまではこのジョブはfailで終わる。
+        run: |
+          if [ ! -f keiba.db ]; then
+            echo "::error::keiba.db がリポに存在しません。DB配布方法 (Git LFS / R2 等) を README に従って整備してください。"
+            ls -la
+            exit 1
+          fi
+          echo "keiba.db OK: $(du -h keiba.db | cut -f1)"
+
+      - name: Compute target weekend dates
+        id: dates
+        # 翌週末(土曜・日曜) を JST 基準で算出
+        # 金曜 23:00 JST に走るので「明日=土曜」「明後日=日曜」が翌週末
+        run: |
+          SAT_YMD=$(date -d "tomorrow" +%Y%m%d)
+          SUN_YMD=$(date -d "tomorrow +1 day" +%Y%m%d)
+          SAT_ISO=$(date -d "tomorrow" +%Y-%m-%d)
+          SUN_ISO=$(date -d "tomorrow +1 day" +%Y-%m-%d)
+          TODAY_ISO=$(date +%Y-%m-%d)
+          echo "sat_ymd=$SAT_YMD" >> "$GITHUB_OUTPUT"
+          echo "sun_ymd=$SUN_YMD" >> "$GITHUB_OUTPUT"
+          echo "sat_iso=$SAT_ISO" >> "$GITHUB_OUTPUT"
+          echo "sun_iso=$SUN_ISO" >> "$GITHUB_OUTPUT"
+          echo "today_iso=$TODAY_ISO" >> "$GITHUB_OUTPUT"
+          echo "対象: $SAT_ISO (土) 〜 $SUN_ISO (日)"
+
+      - name: Scrape netkeiba (土日2日分)
+        working-directory: keiba-dashboard
+        run: |
+          python live/scrape_all.py "${{ steps.dates.outputs.sat_ymd }}" "${{ steps.dates.outputs.sun_ymd }}"
+
+      - name: Generate picks
+        working-directory: keiba-dashboard
+        run: |
+          python live/runner.py picks --from "${{ steps.dates.outputs.sat_iso }}" --to "${{ steps.dates.outputs.sun_iso }}"
+
+      - name: Build Discord notification body
+        id: notify_body
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          today = os.environ["TODAY_ISO"]
+          picks_path = pathlib.Path("keiba-dashboard/state/picks") / f"{today}.json"
+          if not picks_path.exists():
+              # picks 0件の日も runner.py 側で書かれない場合がある
+              msg = f":horse_racing: {today} picks: 投票対象なし"
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write(f"picks_file=\n")
+                  f.write("content<<__EOF__\n")
+                  f.write(msg + "\n")
+                  f.write("__EOF__\n")
+              raise SystemExit(0)
+
+          data = json.loads(picks_path.read_text())
+          merged = data.get("merged", {}).get("races", [])
+          dup = data.get("dup", {}).get("races", [])
+
+          # race_id ごとに merged と dup を統合 (5/23の出力形式に合わせる)
+          summary = {}
+          for r in merged:
+              rid = r["race_id"]
+              summary.setdefault(rid, {"race": r, "merged": [], "dup": []})
+              for h in r["picks"]:
+                  summary[rid]["merged"].append({
+                      "horse": h,
+                      "name": r["horse_names"].get(str(h), r["horse_names"].get(h, "")),
+                      "amount": r["bet_per"],
+                  })
+          for r in dup:
+              rid = r["race_id"]
+              summary.setdefault(rid, {"race": r, "merged": [], "dup": []})
+              for h in r["picks"]:
+                  summary[rid]["dup"].append({
+                      "horse": h,
+                      "name": r["horse_names"].get(str(h), r["horse_names"].get(h, "")),
+                      "amount": r["bet_per"],
+                      "strategy": r.get("strategy", ""),
+                  })
+
+          lines = []
+          lines.append(f":horse_racing: **週次picks {today}** (対象: {os.environ['SAT_ISO']} 〜 {os.environ['SUN_ISO']})")
+          if not summary:
+              lines.append("本日の投票対象なし")
+          else:
+              for rid in sorted(summary.keys(), key=lambda k: (summary[k]["race"]["date"], k)):
+                  info = summary[rid]
+                  race = info["race"]
+                  md = race["date"][5:].replace("-", "/")
+                  lines.append("")
+                  lines.append(f"🏇 {md} {race['venue']}{race['race_num']}R {race['race_name']}（{race['surface']}{race['distance']}m）")
+                  lines.append("  馬券種: 複勝")
+                  horses_src = info["merged"] or info["dup"]
+                  seen = set()
+                  horses_str_list = []
+                  for b in horses_src:
+                      key = b["horse"]
+                      if key in seen:
+                          continue
+                      seen.add(key)
+                      horses_str_list.append(f"{b['horse']}番 {b['name']}")
+                  lines.append(f"  馬: {', '.join(horses_str_list)}")
+                  # 金額表示 (merged優先)
+                  if info["merged"]:
+                      amt = info["merged"][0]["amount"]
+                      lines.append(f"  各¥{amt:,} (重複なし戦略)")
+                  if info["dup"]:
+                      by_strat = {}
+                      for b in info["dup"]:
+                          by_strat.setdefault(b["strategy"], []).append(b)
+                      for strat, bs in by_strat.items():
+                          lines.append(f"  + {strat}: 各¥{bs[0]['amount']:,}")
+              lines.append("")
+              lines.append(f"合計 重複なし: ¥{data['merged']['total_wagered']:,} / 重複あり: ¥{data['dup']['total_wagered']:,}")
+
+          content = "\n".join(lines)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"picks_file={picks_path}\n")
+              f.write("content<<__EOF__\n")
+              f.write(content + "\n")
+              f.write("__EOF__\n")
+          PY
+        env:
+          TODAY_ISO: ${{ steps.dates.outputs.today_iso }}
+          SAT_ISO: ${{ steps.dates.outputs.sat_iso }}
+          SUN_ISO: ${{ steps.dates.outputs.sun_iso }}
+
+      - name: Send to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          BODY: ${{ steps.notify_body.outputs.content }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "::error::DISCORD_WEBHOOK_URL secret 未設定"
+            exit 1
+          fi
+          # Discord の content は 2000 文字制限。超過時は切り詰め。
+          python - <<'PY'
+          import json, os, urllib.request
+          body = os.environ["BODY"]
+          if len(body) > 1900:
+              body = body[:1900] + "\n…(truncated)"
+          req = urllib.request.Request(
+              os.environ["WEBHOOK"],
+              data=json.dumps({"content": body}).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req) as res:
+              print("Discord status:", res.status)
+          PY
+
+      - name: Upload picks to Cloudflare R2
+        # スマホアプリ (keiba-picks-mobile) 用に picks / portfolio を R2 へアップロード。
+        # 失敗してもワークフロー全体は継続 (Discord通知 + commit は既に成功している想定)。
+        if: steps.notify_body.outputs.picks_file != ''
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PICKS_FILE: ${{ steps.notify_body.outputs.picks_file }}
+          TODAY_ISO: ${{ steps.dates.outputs.today_iso }}
+          R2_BUCKET: keiba-picks
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID 未設定。R2 アップロードをスキップ。"
+            exit 0
+          fi
+          PORTFOLIO_FILE="keiba-dashboard/state/portfolio.json"
+          # picks/{today}.json (履歴用)
+          npx --yes wrangler@3 r2 object put \
+            "${R2_BUCKET}/picks/${TODAY_ISO}.json" \
+            --file "$PICKS_FILE" \
+            --content-type "application/json; charset=utf-8" \
+            --remote
+          # picks/latest.json (アプリが最新を取りに行く用)
+          npx --yes wrangler@3 r2 object put \
+            "${R2_BUCKET}/picks/latest.json" \
+            --file "$PICKS_FILE" \
+            --content-type "application/json; charset=utf-8" \
+            --remote
+          # portfolio.json (latest)
+          if [ -f "$PORTFOLIO_FILE" ]; then
+            npx --yes wrangler@3 r2 object put \
+              "${R2_BUCKET}/portfolio.json" \
+              --file "$PORTFOLIO_FILE" \
+              --content-type "application/json; charset=utf-8" \
+              --remote
+          else
+            echo "::warning::$PORTFOLIO_FILE が無いため portfolio.json アップロードはスキップ"
+          fi
+
+      - name: Commit picks.json
+        if: steps.notify_body.outputs.picks_file != ''
+        env:
+          PICKS_FILE: ${{ steps.notify_body.outputs.picks_file }}
+          TODAY_ISO: ${{ steps.dates.outputs.today_iso }}
+        run: |
+          git config user.name "Yamadorinaruho"
+          git config user.email "yamadori.naruho@gmail.com"
+          git add "$PICKS_FILE"
+          if git diff --cached --quiet; then
+            echo "差分なし: コミットスキップ"
+            exit 0
+          fi
+          git commit -m "週次picks自動生成 ${TODAY_ISO}"
+          git push origin main

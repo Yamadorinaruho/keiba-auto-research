@@ -1,0 +1,5 @@
+data/chunk_*.sql
+data_5yr/
+import.log
+*.bak
+.DS_Store

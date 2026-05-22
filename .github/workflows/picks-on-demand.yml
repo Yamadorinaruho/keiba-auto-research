@@ -1,0 +1,244 @@
+name: picks on-demand
+# スマホアプリ (keiba-picks-mobile) からの workflow_dispatch を受けて
+# 指定日のpicks を生成し、keiba-picks-mobile/public/picks/{date_from}.json に
+# コミットする。main への push で Cloudflare Pages が再デプロイ → アプリが
+# polling fetch で取得する流れ。
+
+on:
+  workflow_dispatch:
+    inputs:
+      date_from:
+        description: "対象開始日 (YYYY-MM-DD)"
+        required: true
+        type: string
+      date_to:
+        description: "対象終了日 (YYYY-MM-DD)"
+        required: true
+        type: string
+
+permissions:
+  contents: write   # picks.json を main にコミットするため必要
+
+jobs:
+  picks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy pandas requests beautifulsoup4 lxml
+
+      - name: Check keiba.db presence
+        run: |
+          if [ ! -f keiba.db ]; then
+            echo "::error::keiba.db がリポに存在しません。DB配布方法 (Git LFS / R2 等) を README に従って整備してください。"
+            ls -la
+            exit 1
+          fi
+          echo "keiba.db OK: $(du -h keiba.db | cut -f1)"
+
+      - name: Normalize input dates
+        id: dates
+        env:
+          DATE_FROM: ${{ inputs.date_from }}
+          DATE_TO: ${{ inputs.date_to }}
+        run: |
+          # YYYY-MM-DD 形式チェック
+          if ! [[ "$DATE_FROM" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "::error::date_from が YYYY-MM-DD 形式ではない: $DATE_FROM"
+            exit 1
+          fi
+          if ! [[ "$DATE_TO" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            echo "::error::date_to が YYYY-MM-DD 形式ではない: $DATE_TO"
+            exit 1
+          fi
+          FROM_YMD=$(echo "$DATE_FROM" | tr -d '-')
+          TO_YMD=$(echo "$DATE_TO" | tr -d '-')
+          TODAY_ISO=$(date +%Y-%m-%d)
+          echo "from_iso=$DATE_FROM" >> "$GITHUB_OUTPUT"
+          echo "to_iso=$DATE_TO" >> "$GITHUB_OUTPUT"
+          echo "from_ymd=$FROM_YMD" >> "$GITHUB_OUTPUT"
+          echo "to_ymd=$TO_YMD" >> "$GITHUB_OUTPUT"
+          echo "today_iso=$TODAY_ISO" >> "$GITHUB_OUTPUT"
+          echo "対象: $DATE_FROM 〜 $DATE_TO"
+
+      - name: Scrape netkeiba
+        working-directory: keiba-dashboard
+        run: |
+          python live/scrape_all.py "${{ steps.dates.outputs.from_ymd }}" "${{ steps.dates.outputs.to_ymd }}"
+
+      - name: Generate picks
+        working-directory: keiba-dashboard
+        run: |
+          python live/runner.py picks --from "${{ steps.dates.outputs.from_iso }}" --to "${{ steps.dates.outputs.to_iso }}"
+
+      - name: Copy picks to mobile app public/picks
+        id: copy_picks
+        env:
+          FROM_ISO: ${{ steps.dates.outputs.from_iso }}
+          TODAY_ISO: ${{ steps.dates.outputs.today_iso }}
+        run: |
+          mkdir -p keiba-picks-mobile/public/picks
+          # runner.py picks は実行日 (TODAY_ISO) で picks/{today}.json を書く想定。
+          # しかしアプリは date_from 名で polling するため、TODAY_ISO 由来のファイルを
+          # date_from 名にコピーする。両方とも present かチェック。
+          SRC=""
+          if [ -f "keiba-dashboard/state/picks/${TODAY_ISO}.json" ]; then
+            SRC="keiba-dashboard/state/picks/${TODAY_ISO}.json"
+          elif [ -f "keiba-dashboard/state/picks/${FROM_ISO}.json" ]; then
+            SRC="keiba-dashboard/state/picks/${FROM_ISO}.json"
+          fi
+          if [ -z "$SRC" ]; then
+            # picks 0件: 空オブジェクトをアプリに渡す
+            echo "::warning::picks ファイル無し ($TODAY_ISO / $FROM_ISO)。空picksを書き出す。"
+            echo '{"merged":{"races":[],"total_wagered":0,"current_cap":0},"dup":{"races":[],"total_wagered":0}}' \
+              > "keiba-picks-mobile/public/picks/${FROM_ISO}.json"
+            cp "keiba-picks-mobile/public/picks/${FROM_ISO}.json" "keiba-picks-mobile/public/picks/latest.json"
+            echo "picks_file=keiba-picks-mobile/public/picks/${FROM_ISO}.json" >> "$GITHUB_OUTPUT"
+            echo "picks_present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          cp "$SRC" "keiba-picks-mobile/public/picks/${FROM_ISO}.json"
+          cp "$SRC" "keiba-picks-mobile/public/picks/latest.json"
+          echo "picks_file=keiba-picks-mobile/public/picks/${FROM_ISO}.json" >> "$GITHUB_OUTPUT"
+          echo "picks_present=true" >> "$GITHUB_OUTPUT"
+          echo "コピー完了: $SRC → keiba-picks-mobile/public/picks/${FROM_ISO}.json (+ latest.json)"
+
+      - name: Build Discord notification body
+        id: notify_body
+        env:
+          FROM_ISO: ${{ steps.dates.outputs.from_iso }}
+          TO_ISO: ${{ steps.dates.outputs.to_iso }}
+          PICKS_FILE: ${{ steps.copy_picks.outputs.picks_file }}
+          PICKS_PRESENT: ${{ steps.copy_picks.outputs.picks_present }}
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          from_iso = os.environ["FROM_ISO"]
+          to_iso = os.environ["TO_ISO"]
+          present = os.environ.get("PICKS_PRESENT") == "true"
+          picks_path = pathlib.Path(os.environ["PICKS_FILE"])
+
+          def write_out(content):
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("content<<__EOF__\n")
+                  f.write(content + "\n")
+                  f.write("__EOF__\n")
+
+          if not present:
+              write_out(f":horse_racing: on-demand picks ({from_iso}〜{to_iso}): 投票対象なし")
+              raise SystemExit(0)
+
+          data = json.loads(picks_path.read_text())
+          merged = data.get("merged", {}).get("races", [])
+          dup = data.get("dup", {}).get("races", [])
+
+          summary = {}
+          for r in merged:
+              rid = r["race_id"]
+              summary.setdefault(rid, {"race": r, "merged": [], "dup": []})
+              for h in r["picks"]:
+                  summary[rid]["merged"].append({
+                      "horse": h,
+                      "name": r["horse_names"].get(str(h), r["horse_names"].get(h, "")),
+                      "amount": r["bet_per"],
+                  })
+          for r in dup:
+              rid = r["race_id"]
+              summary.setdefault(rid, {"race": r, "merged": [], "dup": []})
+              for h in r["picks"]:
+                  summary[rid]["dup"].append({
+                      "horse": h,
+                      "name": r["horse_names"].get(str(h), r["horse_names"].get(h, "")),
+                      "amount": r["bet_per"],
+                      "strategy": r.get("strategy", ""),
+                  })
+
+          lines = []
+          lines.append(f":horse_racing: **on-demand picks** (対象: {from_iso} 〜 {to_iso})")
+          if not summary:
+              lines.append("本日の投票対象なし")
+          else:
+              for rid in sorted(summary.keys(), key=lambda k: (summary[k]["race"]["date"], k)):
+                  info = summary[rid]
+                  race = info["race"]
+                  md = race["date"][5:].replace("-", "/")
+                  lines.append("")
+                  lines.append(f"🏇 {md} {race['venue']}{race['race_num']}R {race['race_name']}（{race['surface']}{race['distance']}m）")
+                  lines.append("  馬券種: 複勝")
+                  horses_src = info["merged"] or info["dup"]
+                  seen = set()
+                  horses_str_list = []
+                  for b in horses_src:
+                      key = b["horse"]
+                      if key in seen:
+                          continue
+                      seen.add(key)
+                      horses_str_list.append(f"{b['horse']}番 {b['name']}")
+                  lines.append(f"  馬: {', '.join(horses_str_list)}")
+                  if info["merged"]:
+                      amt = info["merged"][0]["amount"]
+                      lines.append(f"  各¥{amt:,} (重複なし戦略)")
+                  if info["dup"]:
+                      by_strat = {}
+                      for b in info["dup"]:
+                          by_strat.setdefault(b["strategy"], []).append(b)
+                      for strat, bs in by_strat.items():
+                          lines.append(f"  + {strat}: 各¥{bs[0]['amount']:,}")
+              lines.append("")
+              lines.append(f"合計 重複なし: ¥{data.get('merged', {}).get('total_wagered', 0):,} / 重複あり: ¥{data.get('dup', {}).get('total_wagered', 0):,}")
+
+          content = "\n".join(lines)
+          write_out(content)
+          PY
+
+      - name: Send to Discord (optional)
+        if: ${{ env.WEBHOOK != '' }}
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          BODY: ${{ steps.notify_body.outputs.content }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          body = os.environ["BODY"]
+          if len(body) > 1900:
+              body = body[:1900] + "\n…(truncated)"
+          req = urllib.request.Request(
+              os.environ["WEBHOOK"],
+              data=json.dumps({"content": body}).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          with urllib.request.urlopen(req) as res:
+              print("Discord status:", res.status)
+          PY
+
+      - name: Commit picks json
+        env:
+          PICKS_FILE: ${{ steps.copy_picks.outputs.picks_file }}
+          FROM_ISO: ${{ steps.dates.outputs.from_iso }}
+          TO_ISO: ${{ steps.dates.outputs.to_iso }}
+        run: |
+          git config user.name "Yamadorinaruho"
+          git config user.email "yamadori.naruho@gmail.com"
+          git add "$PICKS_FILE" "keiba-picks-mobile/public/picks/latest.json"
+          if git diff --cached --quiet; then
+            echo "差分なし: コミットスキップ"
+            exit 0
+          fi
+          git commit -m "on-demand picks 生成 ${FROM_ISO}〜${TO_ISO}"
+          git push origin main

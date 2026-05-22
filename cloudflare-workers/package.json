@@ -1,0 +1,20 @@
+{
+  "name": "keiba-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Workers + Hono.js port of keiba-dashboard FastAPI backend",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250101.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^3.95.0"
+  }
+}
