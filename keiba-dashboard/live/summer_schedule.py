@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """【朝】夏戦略・対象レースの発走時刻リストを確定して保存。
-4場(小倉/福島/函館/新潟)の 3歳牝・芝・未勝利 を抽出し、発走時刻を記録。
+5場(小倉/福島/函館/新潟/札幌)の 3歳牝・芝・未勝利 を抽出し、発走時刻を記録。
 巡回ジョブ(summer_notify)がこのリストを見て30分前に本命を通知する。
 
 使い方: python3 -m live.summer_schedule [YYYYMMDD]
@@ -12,7 +12,9 @@ from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch
 from live import notify
 from bs4 import BeautifulSoup
 
-LOCAL4 = {"小倉", "福島", "函館", "新潟"}
+# 純ローカル4場+札幌(=北海道の少頭数ローカル色、函館と同性質。decision 163)
+# 中京は除外: 波乱が11番人気以下の超大穴に逃げ4-10番人気が取れない(99%)
+LOCAL4 = {"小倉", "福島", "函館", "新潟", "札幌"}
 VENUE = {"01":"札幌","02":"函館","03":"福島","04":"新潟","05":"東京",
          "06":"中山","07":"中京","08":"京都","09":"阪神","10":"小倉"}
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")

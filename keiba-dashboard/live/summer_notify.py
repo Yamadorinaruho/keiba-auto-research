@@ -7,6 +7,7 @@
 スコア(decision 159): 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重450-470
   + 妙味血統(ディープ系+2 / サンデー系他・カナロア系・米国系+1)  ※外枠軸は死に軸で除外
 母集団: 3歳牝 芝 未勝利 4-10番人気 単勝150倍以下 (血統除外なし)
+  かつ 過去出走2戦以上(3戦目以上)。1-2戦目は見限り妙味が未成熟で除外 (decision 160)
 使い方: python3 -m live.summer_notify [YYYYMMDD]  (env TZ=Asia/Tokyo 前提)
 """
 import sys, os, re, json, datetime
@@ -48,7 +49,8 @@ def get_weight(race_id):
 
 
 def prev_run(horse_id, before_date):
-    """前走の (4角/頭数=相対位置, 着順, 父名) を返す"""
+    """前走の (4角/頭数=相対位置, 着順, 父名, 過去出走数) を返す。
+    過去出走数=before_dateより前のレース数(=今走を含めると n_prev+1 戦目)"""
     sire = None
     try:
         sire = parse_horse(horse_id).get("sire") or None
@@ -59,8 +61,11 @@ def prev_run(horse_id, before_date):
     soup = BeautifulSoup(html, "html.parser")
     t = soup.select_one(".db_h_race_results")
     if not t:
-        return None, None, sire
+        return None, None, sire, 0
     idx = {h.get_text(strip=True): i for i, h in enumerate(t.select("thead th"))}
+    rel = fin = None
+    n_prev = 0
+    captured = False
     for tr in t.select("tbody tr"):
         tds = [td.get_text(strip=True) for td in tr.select("td")]
         if len(tds) < 10:
@@ -68,16 +73,19 @@ def prev_run(horse_id, before_date):
         d = tds[idx.get("日付", 0)].replace("/", "-")
         if not (d and d < before_date):
             continue
-        fin = int(tds[idx["着順"]]) if "着順" in idx and tds[idx["着順"]].isdigit() else None
-        nrun = int(tds[idx["頭数"]]) if "頭数" in idx and tds[idx["頭数"]].isdigit() else None
-        c4 = None
-        if "通過" in idx and "-" in tds[idx["通過"]]:
-            try:
-                c4 = int(tds[idx["通過"]].split("-")[-1])
-            except ValueError:
-                pass
-        return ((c4 / nrun) if (c4 and nrun) else None), fin, sire
-    return None, None, sire
+        n_prev += 1
+        if not captured:  # 最新(=前走)行のみ rel/着順を採用
+            captured = True
+            fin = int(tds[idx["着順"]]) if "着順" in idx and tds[idx["着順"]].isdigit() else None
+            nrun = int(tds[idx["頭数"]]) if "頭数" in idx and tds[idx["頭数"]].isdigit() else None
+            c4 = None
+            if "通過" in idx and "-" in tds[idx["通過"]]:
+                try:
+                    c4 = int(tds[idx["通過"]].split("-")[-1])
+                except ValueError:
+                    pass
+            rel = (c4 / nrun) if (c4 and nrun) else None
+    return rel, fin, sire, n_prev
 
 
 def axes(c):
@@ -115,7 +123,9 @@ def build_pick(race_id, date_iso):
         if pop is None or odds is None or not (4 <= pop <= 10) or odds >= 150:
             continue
         wt = wmap.get(h["馬番"])
-        rel, fin, sire = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None)
+        rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0)
+        if n_prev < 2:   # 1-2戦目(過去出走0-1)は見限り妙味が未成熟なため除外 (decision 160)
+            continue
         lin = LINEAGE.get(sire) if sire else None
         sc = (int(rel is not None and rel > 0.33)
               + int(fin is not None and fin >= 6) + int(wt is not None and 450 <= wt <= 470)
