@@ -9,6 +9,8 @@
 import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch
+from live.summer_notify import prev_run, lin_bonus   # 前走rel/着順/父/キャリア・血統加点を共用
+from live.sire_lineage_map import LINEAGE
 from live import notify
 from bs4 import BeautifulSoup
 
@@ -51,15 +53,39 @@ def main():
         pt = post_time(rid)
         if not pt:
             continue
+        # 不変特徴(前走rel/着順/父系統/キャリア数)を朝に1回だけ計算して保存。
+        # 巡回(15分前)は馬体重・オッズ・人気だけ取得すればよくなる。
+        cands = []
+        for h in s["horses"]:
+            sa = h.get("性齢", "")
+            if not (sa.startswith("牝") and sa.endswith("3")) or not h.get("馬ID"):
+                continue
+            try:
+                rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso)
+            except Exception:
+                rel = fin = sire = None; n_prev = 0
+            cands.append({"umaban": h["馬番"], "horse": h["馬名"],
+                          "rel": rel, "fin": fin,
+                          "lin": LINEAGE.get(sire) if sire else None, "n_prev": n_prev})
         races.append({"race_id": rid, "venue": VENUE.get(rid[4:6]),
-                      "rno": int(rid[-2:]), "post": pt, "notified": False})
+                      "rno": int(rid[-2:]), "post": pt, "notified": False, "cands": cands})
     races.sort(key=lambda x: x["post"])
     os.makedirs(STATE_DIR, exist_ok=True)
     path = os.path.join(STATE_DIR, f"summer_sched_{date}.json")
     with open(path, "w") as f:
         json.dump({"date": date_iso, "races": races}, f, ensure_ascii=False, indent=1)
-    msg = f"📅 *夏戦略 本日の対象レース {date_iso[5:].replace('-','/')}* ({len(races)}R)\n"
-    msg += "\n".join(f"  {r['post']} {r['venue']}{r['rno']}R (発走30分前に本命通知)" for r in races) or "  対象レースなし"
+    def struct(c):  # 朝に分かる構造スコア(前走中団+前走6着下+血統)。馬体重・オッズは当日加算
+        return (int(c["rel"] is not None and c["rel"] > 0.33)
+                + int(c["fin"] is not None and c["fin"] >= 6) + lin_bonus(c["lin"]))
+    lines = [f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* ({len(races)}R)",
+             "_朝の事前計算: 構造スコア=前走中団以降+前走6着以下+血統(馬体重・オッズ・人気は当日加算→発走15分前以内に最終通知)_"]
+    for r in races:
+        lines.append(f"\n*{r['post']} {r['venue']}{r['rno']}R*")
+        for c in sorted([c for c in r["cands"] if c["n_prev"] >= 2], key=lambda c: -struct(c)):
+            relstr = f"4角{c['rel']:.0%}" if c["rel"] is not None else "前走不明"
+            finstr = f"前走{c['fin']}着" if c["fin"] is not None else "前走?"
+            lines.append(f"  [構造{struct(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'})")
+    msg = "\n".join(lines) if races else f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
     print(msg)
     notify.send(msg)
     print(f"[state] {path}")

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""【巡回】発走30分前のレースの本命をSlack通知。
+"""【巡回】発走15分前以内のレースの本命をSlack通知。
 朝に summer_schedule が保存した発走時刻リストを見て、現在時刻が
-発走30分前(±8分窓)のレースだけ、馬体重・確定オッズ込みのスコアで本命算出→通知。
-通知済みフラグをstateに書き戻して二重通知を防ぐ。
+発走3〜15分前のレースだけ、馬体重・直前オッズ込みのスコアで本命算出→通知。
+通知済みフラグをstateに書き戻して二重通知を防ぐ。(3分毎巡回前提)
 
 スコア(decision 159/168): 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重420-470
   + 妙味血統(ディープ系+2 / サンデー系他・カナロア系+1)  ※外枠軸は死に軸で除外
-母集団: 3歳牝 芝 未勝利 4-10番人気 単勝10-150倍 (血統除外なし) decision 166
-  ※単勝10倍未満は"名目4-10番人気でも実は人気馬(織り込み済み)"なので除外
+母集団: 3歳牝 芝 未勝利 4-12番人気 単勝10-70倍(30分前) (血統除外なし) decision 169
+  狙いは確定 人気4-12×単勝10-80。上向きドリフト(中央+24%)補正で選択上限を70に。
+  ※単勝10倍未満は"名目4-12番人気でも実は人気馬(織り込み済み)"なので除外
   かつ 過去出走2戦以上(3戦目以上)。1-2戦目は見限り妙味が未成熟で除外 (decision 160)
 使い方: python3 -m live.summer_notify [YYYYMMDD]  (env TZ=Asia/Tokyo 前提)
 """
@@ -19,8 +20,10 @@ from live.sire_lineage_map import LINEAGE
 from bs4 import BeautifulSoup
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
-LEAD_MIN = 30      # 発走何分前に通知するか
-WINDOW = 8         # 巡回間隔(15分)を取りこぼさない窓 ±8分
+# 発走3〜15分前に入ったら即通知(確定に近くオッズ精度↑、馬体重は50分前公開で取得可)。
+# 3分毎巡回前提。GA遅延で飛んでも1〜15分前の範囲内で確実に拾える。1分前より後は遅すぎるので出さない。
+NOTIFY_CEIL = 15   # この分前以内になったら通知
+NOTIFY_FLOOR = 1   # これより後(発走間際)は通知しない
 BET_PER = 1000
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 # 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
@@ -110,24 +113,31 @@ def reason(c):
     return " / ".join(ok) if ok else "母集団該当のみ"
 
 
-def build_pick(race_id, date_iso):
+def build_pick(race_id, feats, date_iso):
+    """feats: 朝(summer_schedule)が計算した不変特徴 {馬番: {rel,fin,lin,n_prev}}。
+    出馬表からは変動する 馬体重・オッズ・人気 のみ取得して合成する。"""
     s = parse_shutuba(race_id)
     if s["surface"] != "芝" or s["class"] != "未勝利":
         return None
     wmap = get_weight(race_id)
+    fmap = {f["umaban"]: f for f in (feats or [])}
     cands = []
     for h in s["horses"]:
         sa = h.get("性齢", "")
         if not (sa.startswith("牝") and sa.endswith("3")):
             continue
         pop, odds = h.get("人気"), h.get("単勝オッズ")
-        if pop is None or odds is None or not (4 <= pop <= 10) or not (10 <= odds < 150):
+        if pop is None or odds is None or not (4 <= pop <= 12) or not (10 <= odds < 80):
             continue
         wt = wmap.get(h["馬番"])
-        rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0)
+        f = fmap.get(h["馬番"])
+        if f is not None:   # 朝に計算済みの不変特徴を利用
+            rel, fin, lin, n_prev = f["rel"], f["fin"], f["lin"], f["n_prev"]
+        else:               # フォールバック: 未計算なら直前に取得
+            rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0)
+            lin = LINEAGE.get(sire) if sire else None
         if n_prev < 2:   # 1-2戦目(過去出走0-1)は見限り妙味が未成熟なため除外 (decision 160)
             continue
-        lin = LINEAGE.get(sire) if sire else None
         sc = (int(rel is not None and rel > 0.33)
               + int(fin is not None and fin >= 6) + int(wt is not None and 420 <= wt <= 470)
               + lin_bonus(lin))
@@ -160,10 +170,10 @@ def main():
         hh, mm = map(int, r["post"].split(":"))
         post_dt = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
         lead = (post_dt - now).total_seconds() / 60.0  # 発走まで何分
-        if abs(lead - LEAD_MIN) > WINDOW:
+        if not (NOTIFY_FLOOR <= lead <= NOTIFY_CEIL):
             continue
         try:
-            p = build_pick(r["race_id"], date_iso)
+            p = build_pick(r["race_id"], r.get("cands"), date_iso)
         except Exception as e:
             print(f"[err] {r['race_id']}: {e}")
             continue
@@ -174,7 +184,9 @@ def main():
         # score>=3 の該当馬を全部買う (cc-memory decision 156)
         allc = [p["honmei"]] + p["others"]
         buys = [c for c in allc if c["score"] >= MIN_SCORE]
-        head = f"🏇 *発走{int(round(lead))}分前* {r['venue']}{r['rno']}R {p['race_name']} ({p['distance']}m)"
+        lead_i = int(round(lead))
+        head = (f"🏇 *{r['venue']}{r['rno']}R* {p['race_name']} ({p['distance']}m)\n"
+                f"⏱ 発走 {r['post']} / 現在 {now.strftime('%H:%M')} → *発走{lead_i}分前*")
         if not buys:
             # 買い目なし(score<3のみ)。通知は出さず記録のみ
             r["notified"] = True
@@ -182,7 +194,15 @@ def main():
             changed = True
             print(f"{head}  → 買い目なし(最高score {allc[0]['score']})")
             continue
-        lines = [head, f"◎買い目 {len(buys)}点 (score≥{MIN_SCORE}・各単勝¥{BET_PER:,})"]
+        lines = [head,
+                 "━━━━━━━━━━━━━━",
+                 f"🎯 *買い目: 単勝 各¥{BET_PER:,} (計¥{BET_PER*len(buys):,})*"]
+        for c in buys:
+            lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}*")
+        lines += [
+                 "━━━━━━━━━━━━━━",
+                 f"_オッズ・人気は発走{lead_i}分前時点（締切まで変動します）_",
+                 "▼内訳"]
         for c in buys:
             ax = " ".join(f"{'✅' if hit else '⬜'}{n}({v})" for n, hit, v in axes(c))
             lines.append(f"・{c['馬番']}番 *{c['馬名']}* {c['人気']}人気 *{c['odds']}倍* (score {c['score']}/5)")

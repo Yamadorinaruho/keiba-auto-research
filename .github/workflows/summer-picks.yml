@@ -2,15 +2,15 @@ name: summer picks
 
 # 夏未勝利牝・本命1点ロジック (cc-memory decision 155)
 #  朝   : 対象レースの発走時刻リストを確定 (summer_schedule)
-#  巡回 : 発走30分前のレースの本命をSlack通知 (summer_notify) ※馬体重・確定オッズ込み4軸
-#  夜   : 本日の収支をSlack通知 (summer_settle) 単勝1000円/点
+#  巡回 : 発走3〜15分前のレースの本命をSlack通知 (summer_notify) ※馬体重・直前オッズ込み
+#  夜   : 本日の収支+オッズ変動をSlack通知 (summer_settle) 単勝1000円/点
 # state は state/summer_sched_YYYYMMDD.json に保存しコミットで永続化。
 # Cron は UTC (JST = UTC+9)。夏季(6/16-8月末)の土日のみ実質稼働。
 
 on:
   schedule:
     - cron: "0 22 * * 5,6"              # 土/日 7:00 JST : 朝(発走時刻リスト)
-    - cron: "0,15,30,45 0-10 * * 6,0"   # 土/日 9:00-19:45 JST 15分毎 : 巡回(30分前通知)
+    - cron: "*/3 0-6 * * 6,0"           # 土/日 9:00-15:57 JST 3分毎 : 巡回(未勝利は午前〜午後早めのみ)
     - cron: "30 11 * * 6,0"             # 土/日 20:30 JST : 夜(収支)
   workflow_dispatch:
     inputs:

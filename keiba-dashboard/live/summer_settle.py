@@ -16,11 +16,12 @@ BET_PER = 1000
 
 
 def result(race_id):
-    """結果ページ → (勝ち馬番→馬名 の着順1, 単勝配当, 馬番別着順dict)"""
+    """結果ページ → (馬番別着順dict, 単勝配当, 馬番別確定単勝オッズdict)"""
     html = fetch(f"https://race.netkeiba.com/race/result.html?race_id={race_id}",
                  cache_key=f"result_{race_id}.html", force=True)
     soup = BeautifulSoup(html, "html.parser")
     fin = {}
+    odds = {}
     for tr in soup.select(".RaceTable01 tr, .ResultTable01 tr"):
         cells = [td.get_text(strip=True) for td in tr.find_all("td")]
         if len(cells) < 4:
@@ -30,6 +31,12 @@ def result(race_id):
         except ValueError:
             continue
         fin[um] = rank
+        # 確定単勝オッズ: 着差より後の最初の「N.N」形式セル(後3Fより前)を採用
+        for cval in cells[8:]:
+            m = re.match(r"^(\d{1,4}\.\d)$", cval)
+            if m and 1.0 <= float(m.group(1)) <= 9999:
+                odds[um] = float(m.group(1))
+                break
     pay = None
     for tr in soup.select(".Payout_Detail_Table tr"):
         ths = tr.find_all("th")
@@ -37,7 +44,7 @@ def result(race_id):
             p = re.findall(r"\d+", tr.select_one(".Payout").get_text().replace(",", ""))
             if p:
                 pay = float(p[0])
-    return fin, pay
+    return fin, pay, odds
 
 
 def main():
@@ -55,8 +62,9 @@ def main():
     n = nhit = 0
     stake = ret = 0
     lines = [f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{BET_PER:,}/点)", ""]
+    drift = []  # (馬名, 30分前オッズ, 確定オッズ, 確定でも10-80に残ったか)
     for r in bets:
-        fin, pay = result(r["race_id"])
+        fin, pay, fodds = result(r["race_id"])
         for pk in r["picks"]:
             um = pk["umaban"]
             rank = fin.get(um)
@@ -68,9 +76,29 @@ def main():
                 lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*BET_PER)-BET_PER:,})")
             else:
                 lines.append(f"× {r['venue']}{r['rno']}R {pk['horse']} → {rank}着")
+            # オッズ変動記録(較正用): 確定オッズは結果ページ優先、勝ち馬は配当からも補完
+            of = fodds.get(um) or (pay / 100 if (rank == 1 and pay) else None)
+            drift.append((r['venue'], r['rno'], pk['horse'], pk.get('odds_pre'), of))
     net = ret - stake
     roi = ret / stake * 100 if stake else 0
     lines += ["", f"*的中 {nhit}/{n}  投資 ¥{stake:,} 払戻 ¥{ret:,}  収支 {'+' if net>=0 else ''}¥{net:,} (ROI {roi:.0f}%)*"]
+    # オッズ変動レポート(通知時=発走15分前以内 → 確定)
+    dl = ["", "📊 *オッズ変動 (通知時→確定)*"]
+    deltas = []
+    for v, rno, horse, op, of in drift:
+        if op and of:
+            pct = (of - op) / op * 100
+            deltas.append(pct)
+            mark = "⚠️" if (of < 10 or of >= 80) else ""  # 確定で10-80を外れた=ドリフトで枠外
+            dl.append(f"・{v}{rno}R {horse}: {op:.1f}→{of:.1f}倍 ({pct:+.0f}%){mark}")
+        else:
+            ops = f"{op:.1f}" if op else "?"
+            dl.append(f"・{v}{rno}R {horse}: {ops}→確定不明")
+    if deltas:
+        avg = sum(deltas) / len(deltas)
+        out = sum(1 for _, _, _, op, of in drift if op and of and (of < 10 or of >= 80))
+        dl.append(f"_平均変動 {avg:+.0f}% / 確定で10-80枠外 {out}/{len(deltas)}頭_")
+    lines += dl
     text = "\n".join(lines)
     print(text)
     notify.send(text)

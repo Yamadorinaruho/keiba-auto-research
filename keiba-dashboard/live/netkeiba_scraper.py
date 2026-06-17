@@ -41,7 +41,8 @@ def fetch(url, cache_key=None, force=False):
             time.sleep(RATE_LIMIT - elapsed)
         _last_fetch[0] = time.time()
     res = requests.get(url, headers=HEADERS, timeout=15)
-    res.encoding = "EUC-JP"
+    # netkeibaはサブドメインで文字コードが違う(db=EUC-JP / race=UTF-8)ため自動判定。
+    res.encoding = res.apparent_encoding or res.encoding or "UTF-8"
     if cache_key:
         (CACHE_DIR / cache_key).write_text(res.text, encoding="utf-8")
     return res.text
