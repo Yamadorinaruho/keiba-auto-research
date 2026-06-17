@@ -4,8 +4,8 @@
 発走30分前(±8分窓)のレースだけ、馬体重・確定オッズ込みのスコアで本命算出→通知。
 通知済みフラグをstateに書き戻して二重通知を防ぐ。
 
-スコア(decision 159): 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重450-470
-  + 妙味血統(ディープ系+2 / サンデー系他・カナロア系・米国系+1)  ※外枠軸は死に軸で除外
+スコア(decision 159/168): 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重420-470
+  + 妙味血統(ディープ系+2 / サンデー系他・カナロア系+1)  ※外枠軸は死に軸で除外
 母集団: 3歳牝 芝 未勝利 4-10番人気 単勝10-150倍 (血統除外なし) decision 166
   ※単勝10倍未満は"名目4-10番人気でも実は人気馬(織り込み済み)"なので除外
   かつ 過去出走2戦以上(3戦目以上)。1-2戦目は見限り妙味が未成熟で除外 (decision 160)
@@ -23,10 +23,10 @@ LEAD_MIN = 30      # 発走何分前に通知するか
 WINDOW = 8         # 巡回間隔(15分)を取りこぼさない窓 ±8分
 BET_PER = 1000
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
-# 血統加点 (decision 158): 母集団内ROIで格付け。ディープ系157%=+2,
-# サンデー系他112%/カナロア系130%/米国系110%=+1, それ以外(<100%)=0。除外なし。
-GOOD2 = {"ディープ系"}                          # +2
-GOOD1 = {"サンデー系他", "カナロア系", "米国系"}   # +1
+# 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
+# ディープ系155%=+2, サンデー系他134%/カナロア系149%=+1, 他(米国系95%含む<100%)=0。除外なし。
+GOOD2 = {"ディープ系"}                  # +2
+GOOD1 = {"サンデー系他", "カナロア系"}   # +1 (米国系は最終形フィルタ下で95%=加点根拠消失のため除外 decision 167)
 
 
 def lin_bonus(lin):
@@ -95,13 +95,13 @@ def axes(c):
     b = lin_bonus(lin)
     return [("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "前走不明"),
             ("前走6着以下", c["前着"] is not None and c["前着"] >= 6, f"前走{c['前着']}着" if c["前着"] is not None else "前走不明"),
-            ("中型450-470", c["体重"] is not None and 450 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
+            ("馬体重420-470", c["体重"] is not None and 420 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
             (f"妙味血統+{b}", b > 0, f"{lin or '血統不明'}(+{b})")]
 
 
 def reason(c):
     lbl = {"前走中団以降": "前走で脚を余す", "前走6着以下": "前走負けて人気落ち",
-           "中型450-470": "好適馬体重"}
+           "馬体重420-470": "好適馬体重"}
     a = axes(c)
     ok = [lbl[n] for n, hit, _ in a[:3] if hit]
     lin, b = c.get("lin"), lin_bonus(c.get("lin"))
@@ -129,7 +129,7 @@ def build_pick(race_id, date_iso):
             continue
         lin = LINEAGE.get(sire) if sire else None
         sc = (int(rel is not None and rel > 0.33)
-              + int(fin is not None and fin >= 6) + int(wt is not None and 450 <= wt <= 470)
+              + int(fin is not None and fin >= 6) + int(wt is not None and 420 <= wt <= 470)
               + lin_bonus(lin))
         cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds,
                       "rel": rel, "前着": fin, "体重": wt, "lin": lin, "score": sc})
