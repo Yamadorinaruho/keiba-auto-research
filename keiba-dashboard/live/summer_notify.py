@@ -6,7 +6,8 @@
 
 スコア(decision 159): 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重450-470
   + 妙味血統(ディープ系+2 / サンデー系他・カナロア系・米国系+1)  ※外枠軸は死に軸で除外
-母集団: 3歳牝 芝 未勝利 4-10番人気 単勝150倍以下 (血統除外なし)
+母集団: 3歳牝 芝 未勝利 4-10番人気 単勝10-150倍 (血統除外なし) decision 166
+  ※単勝10倍未満は"名目4-10番人気でも実は人気馬(織り込み済み)"なので除外
   かつ 過去出走2戦以上(3戦目以上)。1-2戦目は見限り妙味が未成熟で除外 (decision 160)
 使い方: python3 -m live.summer_notify [YYYYMMDD]  (env TZ=Asia/Tokyo 前提)
 """
@@ -120,7 +121,7 @@ def build_pick(race_id, date_iso):
         if not (sa.startswith("牝") and sa.endswith("3")):
             continue
         pop, odds = h.get("人気"), h.get("単勝オッズ")
-        if pop is None or odds is None or not (4 <= pop <= 10) or odds >= 150:
+        if pop is None or odds is None or not (4 <= pop <= 10) or not (10 <= odds < 150):
             continue
         wt = wmap.get(h["馬番"])
         rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0)
