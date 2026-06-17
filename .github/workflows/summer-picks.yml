@@ -1,0 +1,87 @@
+name: summer picks
+
+# 夏未勝利牝・本命1点ロジック (cc-memory decision 155)
+#  朝   : 対象レースの発走時刻リストを確定 (summer_schedule)
+#  巡回 : 発走30分前のレースの本命をSlack通知 (summer_notify) ※馬体重・確定オッズ込み4軸
+#  夜   : 本日の収支をSlack通知 (summer_settle) 単勝1000円/点
+# state は state/summer_sched_YYYYMMDD.json に保存しコミットで永続化。
+# Cron は UTC (JST = UTC+9)。夏季(6/16-8月末)の土日のみ実質稼働。
+
+on:
+  schedule:
+    - cron: "0 22 * * 5,6"              # 土/日 7:00 JST : 朝(発走時刻リスト)
+    - cron: "0,15,30,45 0-10 * * 6,0"   # 土/日 9:00-19:45 JST 15分毎 : 巡回(30分前通知)
+    - cron: "30 11 * * 6,0"             # 土/日 20:30 JST : 夜(収支)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "schedule | notify | settle"
+        required: true
+        default: "notify"
+      date:
+        description: "YYYYMMDD (空=今日)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write   # state json をコミットして巡回間で共有
+
+concurrency:
+  group: summer-picks   # 巡回の多重実行防止
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Asia/Tokyo
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11", cache: pip }
+
+      - run: pip install requests beautifulsoup4 lxml
+
+      - name: Decide mode & season
+        id: m
+        run: |
+          # モード判定: schedule(7時) / settle(20:30) / notify(それ以外)
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            MODE="${{ github.event.inputs.mode }}"
+          else
+            H=$(date +%H); MIN=$(date +%M)
+            if [ "$H" = "07" ]; then MODE="schedule"
+            elif [ "$H" = "20" ]; then MODE="settle"
+            else MODE="notify"; fi
+          fi
+          # 夏季(6/16-8/31)判定
+          MO=$(date +%m); DA=$(date +%d); SEASON=no
+          if { [ "$MO" = "06" ] && [ "$DA" -ge 16 ]; } || [ "$MO" = "07" ] || [ "$MO" = "08" ]; then SEASON=yes; fi
+          [ "${{ github.event_name }}" = "workflow_dispatch" ] && SEASON=yes
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "season=$SEASON" >> "$GITHUB_OUTPUT"
+          echo "mode=$MODE season=$SEASON"
+
+      - name: Run
+        if: steps.m.outputs.season == 'yes'
+        run: |
+          DATE="${{ github.event.inputs.date }}"; [ -z "$DATE" ] && DATE=$(date +%Y%m%d)
+          cd keiba-dashboard
+          python3 -m live.summer_${{ steps.m.outputs.mode }} "$DATE"
+
+      - name: Commit state
+        if: steps.m.outputs.season == 'yes'
+        run: |
+          cd keiba-dashboard
+          if [ -n "$(git status --porcelain state/ 2>/dev/null)" ]; then
+            git config user.name "github-actions"
+            git config user.email "actions@github.com"
+            git add state/summer_sched_*.json
+            git commit -m "summer picks state $(date +%F\ %H:%M)" || true
+            git pull --rebase --autostash origin "${{ github.ref_name }}" || true
+            git push || true
+          fi
