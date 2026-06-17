@@ -10,8 +10,9 @@
 """
 import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from live.netkeiba_scraper import parse_shutuba, fetch
+from live.netkeiba_scraper import parse_shutuba, parse_horse, fetch
 from live import notify
+from live.sire_lineage_map import LINEAGE
 from bs4 import BeautifulSoup
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
@@ -19,6 +20,8 @@ LEAD_MIN = 30      # 発走何分前に通知するか
 WINDOW = 8         # 巡回間隔(15分)を取りこぼさない窓 ±8分
 BET_PER = 1000
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
+GOOD_LIN = {"ディープ系"}  # 血統加点 (+1) decision 157 : ディープ系のみ
+BAD_LIN = "米国系"  # 除外 (芝で死ぬ)
 
 
 def get_weight(race_id):
@@ -38,12 +41,18 @@ def get_weight(race_id):
 
 
 def prev_run(horse_id, before_date):
+    """前走の (4角/頭数=相対位置, 着順, 父名) を返す"""
+    sire = None
+    try:
+        sire = parse_horse(horse_id).get("sire") or None
+    except Exception:
+        pass
     html = fetch(f"https://db.netkeiba.com/horse/result/{horse_id}/",
                  cache_key=f"hresult_{horse_id}.html")
     soup = BeautifulSoup(html, "html.parser")
     t = soup.select_one(".db_h_race_results")
     if not t:
-        return None, None
+        return None, None, sire
     idx = {h.get_text(strip=True): i for i, h in enumerate(t.select("thead th"))}
     for tr in t.select("tbody tr"):
         tds = [td.get_text(strip=True) for td in tr.select("td")]
@@ -60,8 +69,8 @@ def prev_run(horse_id, before_date):
                 c4 = int(tds[idx["通過"]].split("-")[-1])
             except ValueError:
                 pass
-        return ((c4 / nrun) if (c4 and nrun) else None), fin
-    return None, None
+        return ((c4 / nrun) if (c4 and nrun) else None), fin, sire
+    return None, None, sire
 
 
 def axes(c):
@@ -69,11 +78,13 @@ def axes(c):
     return [("外枠5-8", c["枠"] >= 5, f"{c['枠']}枠"),
             ("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "前走不明"),
             ("前走6着以下", c["前着"] is not None and c["前着"] >= 6, f"前走{c['前着']}着" if c["前着"] is not None else "前走不明"),
-            ("中型450-470", c["体重"] is not None and 450 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明")]
+            ("中型450-470", c["体重"] is not None and 450 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
+            ("ディープ系", c.get("lin") in GOOD_LIN, c.get("lin") or "血統不明")]
 
 
 def reason(c):
-    lbl = {"外枠5-8": "外枠", "前走中団以降": "前走で脚を余す", "前走6着以下": "前走負けて人気落ち", "中型450-470": "好適馬体重"}
+    lbl = {"外枠5-8": "外枠", "前走中団以降": "前走で脚を余す", "前走6着以下": "前走負けて人気落ち",
+           "中型450-470": "好適馬体重", "ディープ系": "ディープ系(芝得意)"}
     ok = [lbl[n] for n, hit, _ in axes(c) if hit]
     return " / ".join(ok) if ok else "母集団該当のみ"
 
@@ -93,11 +104,15 @@ def build_pick(race_id, date_iso):
             continue
         waku = int(h["枠"]) if h.get("枠", "").isdigit() else 0
         wt = wmap.get(h["馬番"])
-        rel, fin = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None)
+        rel, fin, sire = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None)
+        lin = LINEAGE.get(sire) if sire else None
+        if lin == BAD_LIN:   # 米国系は除外
+            continue
         sc = (int(waku >= 5) + int(rel is not None and rel > 0.33)
-              + int(fin is not None and fin >= 6) + int(wt is not None and 450 <= wt <= 470))
+              + int(fin is not None and fin >= 6) + int(wt is not None and 450 <= wt <= 470)
+              + int(lin in GOOD_LIN))
         cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds,
-                      "枠": waku, "rel": rel, "前着": fin, "体重": wt, "score": sc})
+                      "枠": waku, "rel": rel, "前着": fin, "体重": wt, "lin": lin, "score": sc})
     if not cands:
         return None
     cands.sort(key=lambda x: (-x["score"], -x["odds"]))
@@ -150,7 +165,7 @@ def main():
         lines = [head, f"◎買い目 {len(buys)}点 (score≥{MIN_SCORE}・各単勝¥{BET_PER:,})"]
         for c in buys:
             ax = " ".join(f"{'✅' if hit else '⬜'}{n}({v})" for n, hit, v in axes(c))
-            lines.append(f"・{c['馬番']}番 *{c['馬名']}* {c['人気']}人気 *{c['odds']}倍* (score {c['score']}/4)")
+            lines.append(f"・{c['馬番']}番 *{c['馬名']}* {c['人気']}人気 *{c['odds']}倍* (score {c['score']}/5)")
             lines.append(f"   {ax} → {reason(c)}")
         skipped = [c for c in allc if c["score"] < MIN_SCORE]
         if skipped:
