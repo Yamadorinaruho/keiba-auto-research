@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """【巡回】発走30分前のレースの本命をSlack通知。
 朝に summer_schedule が保存した発走時刻リストを見て、現在時刻が
-発走30分前(±8分窓)のレースだけ、馬体重・確定オッズ込みの4軸スコアで本命算出→通知。
+発走30分前(±8分窓)のレースだけ、馬体重・確定オッズ込みのスコアで本命算出→通知。
 通知済みフラグをstateに書き戻して二重通知を防ぐ。
 
-スコア(decision 155): 外枠(5-8) + 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重450-470
-母集団: 3歳牝 芝 未勝利 4-10番人気 単勝150倍以下
+スコア(decision 159): 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重450-470
+  + 妙味血統(ディープ系+2 / サンデー系他・カナロア系・米国系+1)  ※外枠軸は死に軸で除外
+母集団: 3歳牝 芝 未勝利 4-10番人気 単勝150倍以下 (血統除外なし)
 使い方: python3 -m live.summer_notify [YYYYMMDD]  (env TZ=Asia/Tokyo 前提)
 """
 import sys, os, re, json, datetime
@@ -20,8 +21,14 @@ LEAD_MIN = 30      # 発走何分前に通知するか
 WINDOW = 8         # 巡回間隔(15分)を取りこぼさない窓 ±8分
 BET_PER = 1000
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
-GOOD_LIN = {"ディープ系"}  # 血統加点 (+1) decision 157 : ディープ系のみ
-BAD_LIN = "米国系"  # 除外 (芝で死ぬ)
+# 血統加点 (decision 158): 母集団内ROIで格付け。ディープ系157%=+2,
+# サンデー系他112%/カナロア系130%/米国系110%=+1, それ以外(<100%)=0。除外なし。
+GOOD2 = {"ディープ系"}                          # +2
+GOOD1 = {"サンデー系他", "カナロア系", "米国系"}   # +1
+
+
+def lin_bonus(lin):
+    return 2 if lin in GOOD2 else (1 if lin in GOOD1 else 0)
 
 
 def get_weight(race_id):
@@ -75,17 +82,22 @@ def prev_run(horse_id, before_date):
 
 def axes(c):
     rel = c["rel"]
-    return [("外枠5-8", c["枠"] >= 5, f"{c['枠']}枠"),
-            ("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "前走不明"),
+    lin = c.get("lin")
+    b = lin_bonus(lin)
+    return [("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "前走不明"),
             ("前走6着以下", c["前着"] is not None and c["前着"] >= 6, f"前走{c['前着']}着" if c["前着"] is not None else "前走不明"),
             ("中型450-470", c["体重"] is not None and 450 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
-            ("ディープ系", c.get("lin") in GOOD_LIN, c.get("lin") or "血統不明")]
+            (f"妙味血統+{b}", b > 0, f"{lin or '血統不明'}(+{b})")]
 
 
 def reason(c):
-    lbl = {"外枠5-8": "外枠", "前走中団以降": "前走で脚を余す", "前走6着以下": "前走負けて人気落ち",
-           "中型450-470": "好適馬体重", "ディープ系": "ディープ系(芝得意)"}
-    ok = [lbl[n] for n, hit, _ in axes(c) if hit]
+    lbl = {"前走中団以降": "前走で脚を余す", "前走6着以下": "前走負けて人気落ち",
+           "中型450-470": "好適馬体重"}
+    a = axes(c)
+    ok = [lbl[n] for n, hit, _ in a[:3] if hit]
+    lin, b = c.get("lin"), lin_bonus(c.get("lin"))
+    if b:
+        ok.append(f"{lin}(妙味血統+{b})")
     return " / ".join(ok) if ok else "母集団該当のみ"
 
 
@@ -102,17 +114,14 @@ def build_pick(race_id, date_iso):
         pop, odds = h.get("人気"), h.get("単勝オッズ")
         if pop is None or odds is None or not (4 <= pop <= 10) or odds >= 150:
             continue
-        waku = int(h["枠"]) if h.get("枠", "").isdigit() else 0
         wt = wmap.get(h["馬番"])
         rel, fin, sire = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None)
         lin = LINEAGE.get(sire) if sire else None
-        if lin == BAD_LIN:   # 米国系は除外
-            continue
-        sc = (int(waku >= 5) + int(rel is not None and rel > 0.33)
+        sc = (int(rel is not None and rel > 0.33)
               + int(fin is not None and fin >= 6) + int(wt is not None and 450 <= wt <= 470)
-              + int(lin in GOOD_LIN))
+              + lin_bonus(lin))
         cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds,
-                      "枠": waku, "rel": rel, "前着": fin, "体重": wt, "lin": lin, "score": sc})
+                      "rel": rel, "前着": fin, "体重": wt, "lin": lin, "score": sc})
     if not cands:
         return None
     cands.sort(key=lambda x: (-x["score"], -x["odds"]))
