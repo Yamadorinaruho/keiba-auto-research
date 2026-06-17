@@ -48,7 +48,7 @@ def main():
         print(f"[skip] {path} なし")
         return
     sched = json.load(open(path))
-    bets = [r for r in sched["races"] if r.get("pick")]
+    bets = [r for r in sched["races"] if r.get("picks")]
     if not bets:
         notify.send(f"💴 *夏戦略 収支 {date_iso[5:].replace('-','/')}*\n本日の対象買い目なし")
         return
@@ -57,16 +57,17 @@ def main():
     lines = [f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{BET_PER:,}/点)", ""]
     for r in bets:
         fin, pay = result(r["race_id"])
-        um = r["pick"]["umaban"]
-        rank = fin.get(um)
-        n += 1
-        stake += BET_PER
-        if rank == 1 and pay:
-            nhit += 1
-            ret += int(pay / 100 * BET_PER)
-            lines.append(f"○ {r['venue']}{r['rno']}R {r['pick']['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*BET_PER)-BET_PER:,})")
-        else:
-            lines.append(f"× {r['venue']}{r['rno']}R {r['pick']['horse']} → {rank}着")
+        for pk in r["picks"]:
+            um = pk["umaban"]
+            rank = fin.get(um)
+            n += 1
+            stake += BET_PER
+            if rank == 1 and pay:
+                nhit += 1
+                ret += int(pay / 100 * BET_PER)
+                lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*BET_PER)-BET_PER:,})")
+            else:
+                lines.append(f"× {r['venue']}{r['rno']}R {pk['horse']} → {rank}着")
     net = ret - stake
     roi = ret / stake * 100 if stake else 0
     lines += ["", f"*的中 {nhit}/{n}  投資 ¥{stake:,} 払戻 ¥{ret:,}  収支 {'+' if net>=0 else ''}¥{net:,} (ROI {roi:.0f}%)*"]

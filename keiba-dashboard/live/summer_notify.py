@@ -18,6 +18,7 @@ STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 LEAD_MIN = 30      # 発走何分前に通知するか
 WINDOW = 8         # 巡回間隔(15分)を取りこぼさない窓 ±8分
 BET_PER = 1000
+MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 
 
 def get_weight(race_id):
@@ -135,19 +136,30 @@ def main():
             r["notified"] = True
             changed = True
             continue
-        h = p["honmei"]
-        ax = " ".join(f"{'✅' if hit else '⬜'}{n}({v})" for n, hit, v in axes(h))
-        lines = [f"🏇 *発走{int(round(lead))}分前* {r['venue']}{r['rno']}R {p['race_name']} ({p['distance']}m)",
-                 f"◎本命 {h['馬番']}番 *{h['馬名']}* {h['人気']}人気 *{h['odds']}倍* (score {h['score']}/4) 単勝¥{BET_PER:,}",
-                 f"   {ax}", f"   → 狙い: {reason(h)}"]
-        for c in p["others"]:
-            cax = "".join("✅" if hit else "⬜" for _, hit, _ in axes(c))
-            lines.append(f"・対抗 {c['馬番']}番 {c['馬名']} {c['人気']}人気 {c['odds']}倍 (s{c['score']} {cax}) {reason(c)}")
+        # score>=3 の該当馬を全部買う (cc-memory decision 156)
+        allc = [p["honmei"]] + p["others"]
+        buys = [c for c in allc if c["score"] >= MIN_SCORE]
+        head = f"🏇 *発走{int(round(lead))}分前* {r['venue']}{r['rno']}R {p['race_name']} ({p['distance']}m)"
+        if not buys:
+            # 買い目なし(score<3のみ)。通知は出さず記録のみ
+            r["notified"] = True
+            r["picks"] = []
+            changed = True
+            print(f"{head}  → 買い目なし(最高score {allc[0]['score']})")
+            continue
+        lines = [head, f"◎買い目 {len(buys)}点 (score≥{MIN_SCORE}・各単勝¥{BET_PER:,})"]
+        for c in buys:
+            ax = " ".join(f"{'✅' if hit else '⬜'}{n}({v})" for n, hit, v in axes(c))
+            lines.append(f"・{c['馬番']}番 *{c['馬名']}* {c['人気']}人気 *{c['odds']}倍* (score {c['score']}/4)")
+            lines.append(f"   {ax} → {reason(c)}")
+        skipped = [c for c in allc if c["score"] < MIN_SCORE]
+        if skipped:
+            lines.append("_見送り(score<3): " + " , ".join(f"{c['馬番']}{c['馬名']}(s{c['score']})" for c in skipped) + "_")
         text = "\n".join(lines)
         print(text)
         notify.send(text)
         r["notified"] = True
-        r["pick"] = {"umaban": h["馬番"], "horse": h["馬名"], "odds_pre": h["odds"]}  # 収支集計用
+        r["picks"] = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "score": c["score"]} for c in buys]
         changed = True
     if changed:
         json.dump(sched, open(path, "w"), ensure_ascii=False, indent=1)
