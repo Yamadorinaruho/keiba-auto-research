@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch
 from live.summer_notify import prev_run, lin_bonus   # 前走rel/着順/父/キャリア・血統加点を共用
 from live import summer_dirt                          # ダート第2戦略の対象判定
+from live import summer_shinba                        # 新馬第3戦略(エピ系)の対象判定
 from live.sire_lineage_map import LINEAGE
 from live import notify
 from bs4 import BeautifulSoup
@@ -65,19 +66,24 @@ def main():
             s = parse_shutuba(rid)
         except Exception:
             continue
-        # 芝戦略: 5場 芝 未勝利 3歳牝 / ダート第2戦略: 全場 ダ≤1400 未勝利〜OP 牝
+        # 芝戦略: 5場 芝 未勝利 3歳牝 / ダート第2戦略: 全場 ダ≤1400 未勝利〜OP 牝 / 新馬第3戦略: 全場 芝 2歳新馬 エピ系
         if venue in LOCAL4 and s["surface"] == "芝" and s["class"] == "未勝利" \
                 and any(is_3hinba(h) for h in s["horses"]):
-            strat, hfilter = "shiba", is_3hinba
+            strat, cands = "shiba", cands_for(s, is_3hinba, date_iso)
         elif summer_dirt.is_target_race(s):
-            strat, hfilter = "dirt", summer_dirt.target_horse
+            strat, cands = "dirt", cands_for(s, summer_dirt.target_horse, date_iso)
+        elif summer_shinba.is_target_race(s):
+            cands = summer_shinba.cands_for(s, date_iso)   # エピ系産駒のみ抽出
+            if not cands:   # エピ系不在ならスキップ
+                continue
+            strat = "shinba"
         else:
             continue
         pt = post_time(rid)
         if not pt:
             continue
         races.append({"race_id": rid, "venue": venue, "rno": int(rid[-2:]), "post": pt,
-                      "notified": False, "strat": strat, "cands": cands_for(s, hfilter, date_iso)})
+                      "notified": False, "strat": strat, "cands": cands})
     races.sort(key=lambda x: x["post"])
     os.makedirs(STATE_DIR, exist_ok=True)
     path = os.path.join(STATE_DIR, f"summer_sched_{date}.json")
@@ -90,9 +96,15 @@ def main():
         return (int(c["rel"] is not None and c["rel"] <= 0.33)
                 + int(c["lin"] == "米国系") + int(c["fin"] is not None and c["fin"] <= 9))
     ns = sum(r["strat"] == "shiba" for r in races); nd = sum(r["strat"] == "dirt" for r in races)
-    lines = [f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R)",
+    nb = sum(r["strat"] == "shinba" for r in races)
+    lines = [f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
              "_朝の事前計算: 構造スコア(馬体重・オッズ・人気は当日加算→発走15分前以内に最終通知)_"]
     for r in races:
+        if r["strat"] == "shinba":   # 新馬エピ系: 構造スコアなし。対象産駒を列挙
+            lines.append(f"\n*{r['post']} [新馬]{r['venue']}{r['rno']}R* (エピ系全頭買い)")
+            for c in r["cands"]:
+                lines.append(f"  {c['umaban']}番 {c['horse']} (父{c['sire']})")
+            continue
         st = struct_shiba if r["strat"] == "shiba" else struct_dirt
         tag = "芝" if r["strat"] == "shiba" else "ダ"
         lines.append(f"\n*{r['post']} [{tag}]{r['venue']}{r['rno']}R*")

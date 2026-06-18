@@ -173,12 +173,16 @@ def main():
         if not (NOTIFY_FLOOR <= lead <= NOTIFY_CEIL):
             continue
         lead_i = int(round(lead))
-        if r.get("strat") == "dirt":   # ダート第2戦略は専用処理に委譲
+        if r.get("strat") in ("dirt", "shinba"):   # ダート第2/新馬第3戦略は専用処理に委譲
             try:
-                from live import summer_dirt
-                text, picks = summer_dirt.process_race(r, date_iso, lead_i)
+                if r.get("strat") == "dirt":
+                    from live import summer_dirt
+                    text, picks = summer_dirt.process_race(r, date_iso, lead_i)
+                else:
+                    from live import summer_shinba
+                    text, picks = summer_shinba.process_race(r, date_iso, lead_i)
             except Exception as e:
-                print(f"[err-dirt] {r['race_id']}: {e}")
+                print(f"[err-{r.get('strat')}] {r['race_id']}: {e}")
                 continue
             r["notified"] = True
             r["picks"] = picks
@@ -187,7 +191,7 @@ def main():
                 print(text)
                 notify.send(text)
             else:
-                print(f"[ダ] {r['venue']}{r['rno']}R → 買い目なし")
+                print(f"[{r.get('strat')}] {r['venue']}{r['rno']}R → 買い目なし")
             continue
         try:
             p = build_pick(r["race_id"], r.get("cands"), date_iso)
