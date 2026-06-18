@@ -62,7 +62,7 @@ def main():
     n = nhit = 0
     stake = ret = 0
     lines = [f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{BET_PER:,}/点)", ""]
-    drift = []  # (馬名, 30分前オッズ, 確定オッズ, 確定でも10-80に残ったか)
+    drift = []  # (venue, rno, 馬名, 通知時オッズ, 確定オッズ, 戦略別オッズ上限)
     for r in bets:
         fin, pay, fodds = result(r["race_id"])
         for pk in r["picks"]:
@@ -78,26 +78,27 @@ def main():
                 lines.append(f"× {r['venue']}{r['rno']}R {pk['horse']} → {rank}着")
             # オッズ変動記録(較正用): 確定オッズは結果ページ優先、勝ち馬は配当からも補完
             of = fodds.get(um) or (pay / 100 if (rank == 1 and pay) else None)
-            drift.append((r['venue'], r['rno'], pk['horse'], pk.get('odds_pre'), of))
+            hi = 50 if r.get("strat") == "dirt" else 80   # 戦略別オッズ上限(芝10-80/ダ10-50)
+            drift.append((r['venue'], r['rno'], pk['horse'], pk.get('odds_pre'), of, hi))
     net = ret - stake
     roi = ret / stake * 100 if stake else 0
     lines += ["", f"*的中 {nhit}/{n}  投資 ¥{stake:,} 払戻 ¥{ret:,}  収支 {'+' if net>=0 else ''}¥{net:,} (ROI {roi:.0f}%)*"]
     # オッズ変動レポート(通知時=発走15分前以内 → 確定)
     dl = ["", "📊 *オッズ変動 (通知時→確定)*"]
     deltas = []
-    for v, rno, horse, op, of in drift:
+    for v, rno, horse, op, of, hi in drift:
         if op and of:
             pct = (of - op) / op * 100
             deltas.append(pct)
-            mark = "⚠️" if (of < 10 or of >= 80) else ""  # 確定で10-80を外れた=ドリフトで枠外
+            mark = "⚠️" if (of < 10 or of >= hi) else ""  # 確定でオッズ帯(芝10-80/ダ10-50)を外れた
             dl.append(f"・{v}{rno}R {horse}: {op:.1f}→{of:.1f}倍 ({pct:+.0f}%){mark}")
         else:
             ops = f"{op:.1f}" if op else "?"
             dl.append(f"・{v}{rno}R {horse}: {ops}→確定不明")
     if deltas:
         avg = sum(deltas) / len(deltas)
-        out = sum(1 for _, _, _, op, of in drift if op and of and (of < 10 or of >= 80))
-        dl.append(f"_平均変動 {avg:+.0f}% / 確定で10-80枠外 {out}/{len(deltas)}頭_")
+        out = sum(1 for _, _, _, op, of, hi in drift if op and of and (of < 10 or of >= hi))
+        dl.append(f"_平均変動 {avg:+.0f}% / 確定でオッズ帯外(芝10-80/ダ10-50) {out}/{len(deltas)}頭_")
     lines += dl
     text = "\n".join(lines)
     print(text)

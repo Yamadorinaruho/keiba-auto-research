@@ -93,8 +93,8 @@ def parse_shutuba(race_id):
     race_data1_text = race_data1.get_text(" ", strip=True) if race_data1 else ""
     race_data2_text = race_data2.get_text(" ", strip=True) if race_data2 else ""
 
-    # 距離/芝ダ抽出
-    surface = "芝" if "芝" in race_data1_text else ("ダ" if "ダ" in race_data1_text else "")
+    # 距離/芝ダ抽出。障害は「障芝2850m」等と表示され芝と誤判定されるため先に判定して除外(surface="障")。
+    surface = "障" if "障" in race_data1_text else ("芝" if "芝" in race_data1_text else ("ダ" if "ダ" in race_data1_text else ""))
     dist_m = re.search(r"(\d{3,4})m", race_data1_text)
     distance = int(dist_m.group(1)) if dist_m else None
 
