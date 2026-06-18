@@ -61,7 +61,8 @@ def main():
         return
     n = nhit = 0
     stake = ret = 0
-    lines = [f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{BET_PER:,}/点)", ""]
+    DIV = "━━━━━━━━━━━━━━"
+    lines = [f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{BET_PER:,}/点)", DIV, ""]
     drift = []  # (venue, rno, 馬名, 通知時オッズ, 確定オッズ, 戦略別オッズ帯 or None)
     for r in bets:
         fin, pay, fodds = result(r["race_id"])
@@ -76,6 +77,7 @@ def main():
                 lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*BET_PER)-BET_PER:,})")
             else:
                 lines.append(f"× {r['venue']}{r['rno']}R {pk['horse']} → {rank}着")
+            lines.append("")   # 各結果の間に空行
             # オッズ変動記録(較正用): 確定オッズは結果ページ優先、勝ち馬は配当からも補完
             of = fodds.get(um) or (pay / 100 if (rank == 1 and pay) else None)
             # 戦略別オッズ帯(芝10-80/ダ10-50)。新馬はオッズ不問の全頭買いのため帯なし(None)。
@@ -83,9 +85,9 @@ def main():
             drift.append((r['venue'], r['rno'], pk['horse'], pk.get('odds_pre'), of, band))
     net = ret - stake
     roi = ret / stake * 100 if stake else 0
-    lines += ["", f"*的中 {nhit}/{n}  投資 ¥{stake:,} 払戻 ¥{ret:,}  収支 {'+' if net>=0 else ''}¥{net:,} (ROI {roi:.0f}%)*"]
+    lines += [DIV, "", f"*的中 {nhit}/{n}  投資 ¥{stake:,} 払戻 ¥{ret:,}  収支 {'+' if net>=0 else ''}¥{net:,} (ROI {roi:.0f}%)*", ""]
     # オッズ変動レポート(通知時=発走15分前以内 → 確定)
-    dl = ["", "📊 *オッズ変動 (通知時→確定)*"]
+    dl = [DIV, "", "📊 *オッズ変動 (通知時→確定)*", ""]
     deltas = []
     def out_of_band(of, band):  # 帯あり戦略のみ判定。新馬(band=None)は常にFalse
         return bool(band) and (of < band[0] or of >= band[1])
@@ -101,11 +103,18 @@ def main():
     if deltas:
         avg = sum(deltas) / len(deltas)
         out = sum(1 for _, _, _, op, of, band in drift if op and of and out_of_band(of, band))
+        dl.append("")
         dl.append(f"_平均変動 {avg:+.0f}% / 確定でオッズ帯外(芝10-80/ダ10-50) {out}/{len(deltas)}頭_")
     lines += dl
     text = "\n".join(lines)
     print(text)
     notify.send(text)
+    # 全レースの15分前オッズ記録に確定オッズを付与(較正用・失敗しても収支通知に影響させない)
+    try:
+        from live import odds_log
+        odds_log.finalize(date)
+    except Exception as e:
+        print(f"[odds_log skip] {e}")
 
 
 if __name__ == "__main__":

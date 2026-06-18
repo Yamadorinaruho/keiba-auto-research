@@ -59,6 +59,11 @@ def cands_for(s, hfilter, date_iso):
 def main():
     date = sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().strftime("%Y%m%d")
     date_iso = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
+    # 戦略別の稼働期間(MM-DD文字列比較。夏季のみ稼働前提)。
+    #   芝・ダート: 6/16〜8/31 (夏ローカル開幕後) / 新馬: 6/1〜 (2歳新馬戦の開始に合わせ前倒し)
+    md = date_iso[5:]
+    shiba_dirt_on = md >= "06-16"
+    shinba_on = md >= "06-01"
     races = []
     for rid in get_race_ids_for_date(date):   # 全会場走査(ダートは全場対象)
         venue = VENUE.get(rid[4:6])
@@ -66,13 +71,14 @@ def main():
             s = parse_shutuba(rid)
         except Exception:
             continue
-        # 芝戦略: 5場 芝 未勝利 3歳牝 / ダート第2戦略: 全場 ダ≤1400 未勝利〜OP 牝 / 新馬第3戦略: 全場 芝 2歳新馬 エピ系
-        if venue in LOCAL4 and s["surface"] == "芝" and s["class"] == "未勝利" \
+        # 芝戦略(6/16-): 5場 芝 未勝利 3歳牝 / ダート第2戦略(6/16-): 全場 ダ≤1400 未勝利〜OP 牝
+        # 新馬第3戦略(6/1-): 全場 芝 2歳新馬 エピ系
+        if shiba_dirt_on and venue in LOCAL4 and s["surface"] == "芝" and s["class"] == "未勝利" \
                 and any(is_3hinba(h) for h in s["horses"]):
             strat, cands = "shiba", cands_for(s, is_3hinba, date_iso)
-        elif summer_dirt.is_target_race(s):
+        elif shiba_dirt_on and summer_dirt.is_target_race(s):
             strat, cands = "dirt", cands_for(s, summer_dirt.target_horse, date_iso)
-        elif summer_shinba.is_target_race(s):
+        elif shinba_on and summer_shinba.is_target_race(s):
             cands = summer_shinba.cands_for(s, date_iso)   # エピ系産駒のみ抽出
             if not cands:   # エピ系不在ならスキップ
                 continue

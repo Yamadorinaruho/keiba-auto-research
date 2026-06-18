@@ -14,7 +14,7 @@
 """
 import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from live.netkeiba_scraper import parse_shutuba, parse_horse, fetch
+from live.netkeiba_scraper import parse_shutuba, parse_horse, fetch, live_odds
 from live import notify
 from live.sire_lineage_map import LINEAGE
 from bs4 import BeautifulSoup
@@ -46,7 +46,10 @@ def get_weight(race_id):
         if len(tds) < 5:
             continue
         num = tds[1].get_text(strip=True)
-        m = re.search(r"(\d{3})\(", tr.get_text(" ", strip=True))
+        # 馬体重は .Weight セルを直接読む(例 "468(-8)")。行全体テキストだと "468 (-8)" と
+        # 空白が入り従来の正規表現が常に不一致→体重不明になっていた(修正)。
+        wcell = tr.select_one(".Weight")
+        m = re.match(r"(\d{3})", wcell.get_text(strip=True)) if wcell else None
         if num.isdigit() and m:
             out[int(num)] = int(m.group(1))
     return out
@@ -120,13 +123,16 @@ def build_pick(race_id, feats, date_iso):
     if s["surface"] != "芝" or s["class"] != "未勝利":
         return None
     wmap = get_weight(race_id)
+    _, omap = live_odds(race_id)   # 最新の単勝オッズ・人気(AJAX=リロード相当)
     fmap = {f["umaban"]: f for f in (feats or [])}
     cands = []
     for h in s["horses"]:
         sa = h.get("性齢", "")
         if not (sa.startswith("牝") and sa.endswith("3")):
             continue
-        pop, odds = h.get("人気"), h.get("単勝オッズ")
+        lo = omap.get(h["馬番"])
+        pop = lo["pop"] if lo else h.get("人気")
+        odds = lo["odds"] if lo else h.get("単勝オッズ")
         if pop is None or odds is None or not (4 <= pop <= 12) or not (10 <= odds < 80):
             continue
         wt = wmap.get(h["馬番"])
@@ -240,6 +246,12 @@ def main():
     if changed:
         json.dump(sched, open(path, "w"), ensure_ascii=False, indent=1)
         print("[state] updated")
+    # JRA全レースの発走15分前オッズ記録(較正用・戦略とは独立。失敗しても通知に影響させない)
+    try:
+        from live import odds_log
+        odds_log.run(date)
+    except Exception as e:
+        print(f"[odds_log skip] {e}")
 
 
 if __name__ == "__main__":

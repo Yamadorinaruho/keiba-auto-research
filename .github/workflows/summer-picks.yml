@@ -5,7 +5,7 @@ name: summer picks
 #  巡回 : 発走3〜15分前のレースの本命をSlack通知 (summer_notify) ※馬体重・直前オッズ込み
 #  夜   : 本日の収支+オッズ変動をSlack通知 (summer_settle) 単勝1000円/点
 # state は state/summer_sched_YYYYMMDD.json に保存しコミットで永続化。
-# Cron は UTC (JST = UTC+9)。夏季(6/16-8月末)の土日のみ実質稼働。
+# Cron は UTC (JST = UTC+9)。6/1-8月末の土日のみ実質稼働(新馬は6/1-, 芝/ダは6/16-)。
 
 on:
   schedule:
@@ -58,9 +58,9 @@ jobs:
             elif [ "$H" = "20" ]; then MODE="settle"
             else MODE="notify"; fi
           fi
-          # 夏季(6/16-8/31)判定
-          MO=$(date +%m); DA=$(date +%d); SEASON=no
-          if { [ "$MO" = "06" ] && [ "$DA" -ge 16 ]; } || [ "$MO" = "07" ] || [ "$MO" = "08" ]; then SEASON=yes; fi
+          # 稼働期間判定: 6/1〜8/31 (新馬は6/1-, 芝/ダは6/16- とPython側(summer_schedule)で戦略別に絞る)
+          MO=$(date +%m); SEASON=no
+          if [ "$MO" = "06" ] || [ "$MO" = "07" ] || [ "$MO" = "08" ]; then SEASON=yes; fi
           [ "${{ github.event_name }}" = "workflow_dispatch" ] && SEASON=yes
           echo "mode=$MODE" >> "$GITHUB_OUTPUT"
           echo "season=$SEASON" >> "$GITHUB_OUTPUT"
@@ -80,7 +80,7 @@ jobs:
           if [ -n "$(git status --porcelain state/ 2>/dev/null)" ]; then
             git config user.name "github-actions"
             git config user.email "actions@github.com"
-            git add state/summer_sched_*.json
+            git add state/summer_sched_*.json state/odds_races_*.json state/odds_log_*.json
             git commit -m "summer picks state $(date +%F\ %H:%M)" || true
             git pull --rebase --autostash origin "${{ github.ref_name }}" || true
             git push || true

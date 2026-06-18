@@ -14,7 +14,7 @@ WF(2014-2025): ROI148% / 79頭/年 / 最悪年35% / +年9/12。
 """
 import sys, os, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from live.netkeiba_scraper import parse_shutuba
+from live.netkeiba_scraper import parse_shutuba, live_odds
 from live.summer_notify import prev_run, get_weight, BET_PER, MIN_SCORE
 from live.sire_lineage_map import LINEAGE
 from live import notify
@@ -50,12 +50,15 @@ def build_dirt_pick(race_id, feats, date_iso):
     if s["surface"] != "ダ" or s["class"] not in CLS_DIRT or s["distance"] > MAX_DIST:
         return None
     wmap = get_weight(race_id)
+    _, omap = live_odds(race_id)   # 最新の単勝オッズ・人気(AJAX=リロード相当)
     fmap = {f["umaban"]: f for f in (feats or [])}
     cands = []
     for h in s["horses"]:
         if not h.get("性齢", "").startswith("牝"):   # 牝のみ(年齢不問)
             continue
-        pop, odds = h.get("人気"), h.get("単勝オッズ")
+        lo = omap.get(h["馬番"])
+        pop = lo["pop"] if lo else h.get("人気")
+        odds = lo["odds"] if lo else h.get("単勝オッズ")
         if pop is None or odds is None or not (4 <= pop <= 12) or not (10 <= odds < 50):
             continue
         wt = wmap.get(h["馬番"])

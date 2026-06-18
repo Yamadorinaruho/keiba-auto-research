@@ -11,7 +11,7 @@
 """
 import sys, os, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from live.netkeiba_scraper import parse_shutuba, parse_horse
+from live.netkeiba_scraper import parse_shutuba, parse_horse, live_odds
 from live.summer_notify import BET_PER
 
 # エピファネイア系後継種牡馬(現状の国内大黒柱はエフフォーリア。直仔エピも対象に残す)
@@ -48,6 +48,7 @@ def build_pick(race_id, feats, date_iso):
     s = parse_shutuba(race_id)
     if s["surface"] != "芝" or s["class"] != "新馬":
         return None
+    _, omap = live_odds(race_id)   # 最新の単勝オッズ・人気(AJAX=リロード相当)
     fmap = {f["umaban"]: f for f in (feats or [])}
     cands = []
     for h in s["horses"]:
@@ -58,8 +59,10 @@ def build_pick(race_id, feats, date_iso):
             sire = horse_sire(h["馬ID"]) if h.get("馬ID") else None
             if sire not in SIRES:
                 continue
+        lo = omap.get(h["馬番"])
         cands.append({"馬番": h["馬番"], "馬名": h["馬名"],
-                      "人気": h.get("人気"), "odds": h.get("単勝オッズ"), "sire": sire})
+                      "人気": lo["pop"] if lo else h.get("人気"),
+                      "odds": lo["odds"] if lo else h.get("単勝オッズ"), "sire": sire})
     if not cands:
         return None
     cands.sort(key=lambda x: x["馬番"])

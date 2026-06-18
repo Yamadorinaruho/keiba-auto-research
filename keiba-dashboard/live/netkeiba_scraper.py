@@ -48,6 +48,31 @@ def fetch(url, cache_key=None, force=False):
     return res.text
 
 
+def live_odds(race_id):
+    """単勝の最新オッズをAJAXで取得(=ブラウザでリロードして見る値と同等)。
+    返り値: (official_datetime, {馬番int: {'odds':float, 'pop':int}})。
+    JRA公式更新時刻(official_datetime)も返るので、そのオッズの鮮度が正確に分かる。"""
+    raw = fetch(f"https://race.netkeiba.com/api/api_get_jra_odds.html?race_id={race_id}&type=1",
+                cache_key=None, force=True)   # 常に最新を取得(キャッシュしない)
+    try:
+        j = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return None, {}
+    if j.get("status") != "result":
+        return None, {}
+    d = j.get("data", {})
+    out = {}
+    for k, v in d.get("odds", {}).get("1", {}).items():   # type "1" = 単勝
+        try:
+            odds, pop = float(v[0]), int(v[2])
+        except (ValueError, IndexError, TypeError):
+            continue
+        if odds <= 0 or pop >= 9999:   # 取消・除外・発売前のセンチネル(例 ["-3.0","0.0","9999"])は除外
+            continue
+        out[int(k)] = {"odds": odds, "pop": pop}
+    return d.get("official_datetime"), out
+
+
 def get_race_ids_for_date(yyyymmdd):
     """指定日のレースID一覧
     - 未来/当日: race.netkeiba.com/top/race_list_sub.html (出走表ベース)
