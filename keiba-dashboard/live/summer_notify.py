@@ -172,6 +172,23 @@ def main():
         lead = (post_dt - now).total_seconds() / 60.0  # 発走まで何分
         if not (NOTIFY_FLOOR <= lead <= NOTIFY_CEIL):
             continue
+        lead_i = int(round(lead))
+        if r.get("strat") == "dirt":   # ダート第2戦略は専用処理に委譲
+            try:
+                from live import summer_dirt
+                text, picks = summer_dirt.process_race(r, date_iso, lead_i)
+            except Exception as e:
+                print(f"[err-dirt] {r['race_id']}: {e}")
+                continue
+            r["notified"] = True
+            r["picks"] = picks
+            changed = True
+            if text:
+                print(text)
+                notify.send(text)
+            else:
+                print(f"[ダ] {r['venue']}{r['rno']}R → 買い目なし")
+            continue
         try:
             p = build_pick(r["race_id"], r.get("cands"), date_iso)
         except Exception as e:

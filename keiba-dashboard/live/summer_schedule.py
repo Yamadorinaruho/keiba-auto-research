@@ -10,6 +10,7 @@ import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch
 from live.summer_notify import prev_run, lin_bonus   # 前走rel/着順/父/キャリア・血統加点を共用
+from live import summer_dirt                          # ダート第2戦略の対象判定
 from live.sire_lineage_map import LINEAGE
 from live import notify
 from bs4 import BeautifulSoup
@@ -34,57 +35,71 @@ def post_time(race_id):
     return None
 
 
+def is_3hinba(h):
+    sa = h.get("性齢", "")
+    return sa.startswith("牝") and sa.endswith("3")
+
+
+def cands_for(s, hfilter, date_iso):
+    """対象馬の不変特徴(前走rel/着順/父系統/キャリア数)を朝に1回だけ計算。"""
+    out = []
+    for h in s["horses"]:
+        if not hfilter(h) or not h.get("馬ID"):
+            continue
+        try:
+            rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso)
+        except Exception:
+            rel = fin = sire = None; n_prev = 0
+        out.append({"umaban": h["馬番"], "horse": h["馬名"], "rel": rel, "fin": fin,
+                    "lin": LINEAGE.get(sire) if sire else None, "n_prev": n_prev})
+    return out
+
+
 def main():
     date = sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().strftime("%Y%m%d")
     date_iso = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
-    ids = get_race_ids_for_date(date)
-    target = [r for r in ids if VENUE.get(r[4:6]) in LOCAL4]
     races = []
-    for rid in target:
+    for rid in get_race_ids_for_date(date):   # 全会場走査(ダートは全場対象)
+        venue = VENUE.get(rid[4:6])
         try:
             s = parse_shutuba(rid)
         except Exception:
             continue
-        if s["surface"] != "芝" or s["class"] != "未勝利":
-            continue
-        # 3歳牝が1頭でもいるレースのみ対象
-        if not any(h.get("性齢", "").startswith("牝") and h.get("性齢", "").endswith("3") for h in s["horses"]):
+        # 芝戦略: 5場 芝 未勝利 3歳牝 / ダート第2戦略: 全場 ダ≤1400 未勝利〜OP 牝
+        if venue in LOCAL4 and s["surface"] == "芝" and s["class"] == "未勝利" \
+                and any(is_3hinba(h) for h in s["horses"]):
+            strat, hfilter = "shiba", is_3hinba
+        elif summer_dirt.is_target_race(s):
+            strat, hfilter = "dirt", summer_dirt.target_horse
+        else:
             continue
         pt = post_time(rid)
         if not pt:
             continue
-        # 不変特徴(前走rel/着順/父系統/キャリア数)を朝に1回だけ計算して保存。
-        # 巡回(15分前)は馬体重・オッズ・人気だけ取得すればよくなる。
-        cands = []
-        for h in s["horses"]:
-            sa = h.get("性齢", "")
-            if not (sa.startswith("牝") and sa.endswith("3")) or not h.get("馬ID"):
-                continue
-            try:
-                rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso)
-            except Exception:
-                rel = fin = sire = None; n_prev = 0
-            cands.append({"umaban": h["馬番"], "horse": h["馬名"],
-                          "rel": rel, "fin": fin,
-                          "lin": LINEAGE.get(sire) if sire else None, "n_prev": n_prev})
-        races.append({"race_id": rid, "venue": VENUE.get(rid[4:6]),
-                      "rno": int(rid[-2:]), "post": pt, "notified": False, "cands": cands})
+        races.append({"race_id": rid, "venue": venue, "rno": int(rid[-2:]), "post": pt,
+                      "notified": False, "strat": strat, "cands": cands_for(s, hfilter, date_iso)})
     races.sort(key=lambda x: x["post"])
     os.makedirs(STATE_DIR, exist_ok=True)
     path = os.path.join(STATE_DIR, f"summer_sched_{date}.json")
     with open(path, "w") as f:
         json.dump({"date": date_iso, "races": races}, f, ensure_ascii=False, indent=1)
-    def struct(c):  # 朝に分かる構造スコア(前走中団+前走6着下+血統)。馬体重・オッズは当日加算
+    def struct_shiba(c):  # 芝: 前走中団以降+前走6着下+血統
         return (int(c["rel"] is not None and c["rel"] > 0.33)
                 + int(c["fin"] is not None and c["fin"] >= 6) + lin_bonus(c["lin"]))
-    lines = [f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* ({len(races)}R)",
-             "_朝の事前計算: 構造スコア=前走中団以降+前走6着以下+血統(馬体重・オッズ・人気は当日加算→発走15分前以内に最終通知)_"]
+    def struct_dirt(c):   # ダート: 前付け+米国系+前走9着以内(馬体重は当日)
+        return (int(c["rel"] is not None and c["rel"] <= 0.33)
+                + int(c["lin"] == "米国系") + int(c["fin"] is not None and c["fin"] <= 9))
+    ns = sum(r["strat"] == "shiba" for r in races); nd = sum(r["strat"] == "dirt" for r in races)
+    lines = [f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R)",
+             "_朝の事前計算: 構造スコア(馬体重・オッズ・人気は当日加算→発走15分前以内に最終通知)_"]
     for r in races:
-        lines.append(f"\n*{r['post']} {r['venue']}{r['rno']}R*")
-        for c in sorted([c for c in r["cands"] if c["n_prev"] >= 2], key=lambda c: -struct(c)):
+        st = struct_shiba if r["strat"] == "shiba" else struct_dirt
+        tag = "芝" if r["strat"] == "shiba" else "ダ"
+        lines.append(f"\n*{r['post']} [{tag}]{r['venue']}{r['rno']}R*")
+        for c in sorted([c for c in r["cands"] if c["n_prev"] >= 2], key=lambda c: -st(c)):
             relstr = f"4角{c['rel']:.0%}" if c["rel"] is not None else "前走不明"
             finstr = f"前走{c['fin']}着" if c["fin"] is not None else "前走?"
-            lines.append(f"  [構造{struct(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'})")
+            lines.append(f"  [構造{st(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'})")
     msg = "\n".join(lines) if races else f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
     print(msg)
     notify.send(msg)
