@@ -109,7 +109,7 @@ def main():
     unit = bankroll.daily_unit(date_iso)   # 当日の1点額を朝に凍結
     lines = ["━━━━━━━━━━━━━━",
              f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
-             f"💰 *本日の1点 ¥{unit:,}* (残高¥{bk['balance']:,}×0.5%・上限{('¥'+format(bankroll.CAP,',')) if bankroll.CAP else 'なし'})",
+             f"💰 *本日の1点 ¥{unit:,}* (残高¥{bk['balance']:,}×0.5%{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
              "_score=馬体重抜きの事前点(score2以上のみ表示)。当日の馬体重+1でscore3=買い目。最終はオッズ・人気込みで発走15分前以内に通知_"]
     for r in races:
         rn = r.get("race_name", "")
