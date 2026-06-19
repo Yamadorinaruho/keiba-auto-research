@@ -20,10 +20,10 @@ from live.sire_lineage_map import LINEAGE
 from bs4 import BeautifulSoup
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
-# 発走3〜15分前に入ったら即通知(確定に近くオッズ精度↑、馬体重は50分前公開で取得可)。
-# 3分毎巡回前提。GA遅延で飛んでも1〜15分前の範囲内で確実に拾える。1分前より後は遅すぎるので出さない。
-NOTIFY_CEIL = 15   # この分前以内になったら通知
-NOTIFY_FLOOR = 1   # これより後(発走間際)は通知しない
+# 買い目通知は1レース最大2回: 発走15分前(暫定)と3分前(締切直前の最終)。
+# 毎分巡回前提。各回オッズを取り直して買い目を再算出。GA遅延に備え窓で判定。
+EARLY_HI = 15.0    # 発走15分前以内に入ったら暫定通知(早めの予告)
+FINAL_HI = 3.5     # 発走3分前以内になったら最終通知(締切直前。これ以下は最終扱い)
 BET_PER = 1000
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 # 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
@@ -171,14 +171,22 @@ def main():
     now = now_jst()
     changed = False
     for r in sched["races"]:
-        if r.get("notified"):
-            continue
         hh, mm = map(int, r["post"].split(":"))
         post_dt = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
         lead = (post_dt - now).total_seconds() / 60.0  # 発走まで何分
-        if not (NOTIFY_FLOOR <= lead <= NOTIFY_CEIL):
+        # フェーズ判定: 3分前以内=最終 / 3〜15分前=暫定
+        if 0 < lead <= FINAL_HI:
+            phase = "final"
+        elif FINAL_HI < lead <= EARLY_HI:
+            phase = "early"
+        else:
             continue
+        if r.get(f"notified_{phase}"):
+            continue
+        if phase == "early" and r.get("notified_final"):
+            continue   # 既に最終を出していれば暫定は不要(GA遅延での逆転対策)
         lead_i = int(round(lead))
+        label = "🔔 *締切直前・最終買い目*" if phase == "final" else "🕐 *発走15分前・暫定*"
         if r.get("strat") in ("dirt", "shinba"):   # ダート第2/新馬第3戦略は専用処理に委譲
             try:
                 if r.get("strat") == "dirt":
@@ -190,35 +198,38 @@ def main():
             except Exception as e:
                 print(f"[err-{r.get('strat')}] {r['race_id']}: {e}")
                 continue
-            r["notified"] = True
-            r["picks"] = picks
+            r[f"notified_{phase}"] = True
+            if phase == "final":
+                r["notified_early"] = True
+            r["picks"] = picks   # 最終で上書き(締切に近い買い目を収支に使う)
             changed = True
             if text:
+                text = label + "\n" + text
                 print(text)
                 notify.send(text)
             else:
-                print(f"[{r.get('strat')}] {r['venue']}{r['rno']}R → 買い目なし")
+                print(f"[{r.get('strat')}] {r['venue']}{r['rno']}R → 買い目なし({phase})")
             continue
         try:
             p = build_pick(r["race_id"], r.get("cands"), date_iso)
         except Exception as e:
             print(f"[err] {r['race_id']}: {e}")
             continue
+        r[f"notified_{phase}"] = True
+        if phase == "final":
+            r["notified_early"] = True
+        changed = True
         if not p:
-            r["notified"] = True
-            changed = True
+            r["picks"] = []
             continue
         # score>=3 の該当馬を全部買う (cc-memory decision 156)
         allc = [p["honmei"]] + p["others"]
         buys = [c for c in allc if c["score"] >= MIN_SCORE]
-        lead_i = int(round(lead))
-        head = (f"🏇 *{r['venue']}{r['rno']}R* {p['race_name']} ({p['distance']}m)\n"
+        r["picks"] = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "score": c["score"]} for c in buys]
+        head = (f"{label}\n"
+                f"🏇 *{r['venue']}{r['rno']}R* {p['race_name']} ({p['distance']}m)\n"
                 f"⏱ 発走 {r['post']} / 現在 {now.strftime('%H:%M')} → *発走{lead_i}分前*")
         if not buys:
-            # 買い目なし(score<3のみ)。通知は出さず記録のみ
-            r["notified"] = True
-            r["picks"] = []
-            changed = True
             print(f"{head}  → 買い目なし(最高score {allc[0]['score']})")
             continue
         lines = [head,
@@ -240,9 +251,6 @@ def main():
         text = "\n".join(lines)
         print(text)
         notify.send(text)
-        r["notified"] = True
-        r["picks"] = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "score": c["score"]} for c in buys]
-        changed = True
     if changed:
         json.dump(sched, open(path, "w"), ensure_ascii=False, indent=1)
         print("[state] updated")

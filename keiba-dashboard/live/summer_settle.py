@@ -109,7 +109,7 @@ def main():
     text = "\n".join(lines)
     print(text)
     notify.send(text)
-    # 全レースの15分前オッズ記録に確定オッズを付与(較正用・失敗しても収支通知に影響させない)
+    # 全レースのオッズ記録に確定オッズを付与(較正用・失敗しても収支通知に影響させない)
     try:
         from live import odds_log
         odds_log.finalize(date)

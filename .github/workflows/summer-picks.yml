@@ -2,7 +2,7 @@ name: summer picks
 
 # 夏未勝利牝・本命1点ロジック (cc-memory decision 155)
 #  朝   : 対象レースの発走時刻リストを確定 (summer_schedule)
-#  巡回 : 発走3〜15分前のレースの本命をSlack通知 (summer_notify) ※馬体重・直前オッズ込み
+#  巡回 : 毎分。発走1〜15分前の買い目をSlack通知(summer_notify) + 全レース10〜1分前オッズを時系列記録(odds_log)
 #  夜   : 本日の収支+オッズ変動をSlack通知 (summer_settle) 単勝1000円/点
 # state は state/summer_sched_YYYYMMDD.json に保存しコミットで永続化。
 # Cron は UTC (JST = UTC+9)。6/1-8月末の土日のみ実質稼働(新馬は6/1-, 芝/ダは6/16-)。
@@ -10,12 +10,12 @@ name: summer picks
 on:
   schedule:
     - cron: "0 22 * * 5,6"              # 土/日 7:00 JST : 朝(発走時刻リスト)
-    - cron: "*/3 0-7 * * 6,0"           # 土/日 9:00-16:57 JST 3分毎 : 巡回(芝未勝利は午前〜午後早/ダートは上位クラスで夕方まで)
+    - cron: "* 0-7 * * 6,0"             # 土/日 9:00-16:59 JST 毎分 : 巡回(買い目通知 + 全レース10〜1分前オッズ記録) ※GA都合で実際は数分間隔になりうる
     - cron: "30 11 * * 6,0"             # 土/日 20:30 JST : 夜(収支)
   workflow_dispatch:
     inputs:
       mode:
-        description: "schedule | notify | settle"
+        description: "schedule | notify | settle | odds"
         required: true
         default: "notify"
       date:
@@ -27,8 +27,9 @@ permissions:
   contents: write   # state json をコミットして巡回間で共有
 
 concurrency:
-  group: summer-picks   # 巡回の多重実行防止
-  cancel-in-progress: false
+  # cron毎に別グループ。毎分巡回が前回の取りこぼし無く回るよう、滞留したら新しい方を優先。
+  group: summer-picks-${{ github.event.schedule || github.event.inputs.mode || 'manual' }}
+  cancel-in-progress: true
 
 jobs:
   run:
@@ -49,14 +50,15 @@ jobs:
       - name: Decide mode & season
         id: m
         run: |
-          # モード判定: schedule(7時) / settle(20:30) / notify(それ以外)
+          # モード判定: 起動cron(github.event.schedule)で識別
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             MODE="${{ github.event.inputs.mode }}"
           else
-            H=$(date +%H); MIN=$(date +%M)
-            if [ "$H" = "07" ]; then MODE="schedule"
-            elif [ "$H" = "20" ]; then MODE="settle"
-            else MODE="notify"; fi
+            case "${{ github.event.schedule }}" in
+              "0 22 * * 5,6")    MODE="schedule" ;;   # 朝
+              "30 11 * * 6,0")   MODE="settle" ;;     # 夜
+              *)                 MODE="notify" ;;     # 毎分巡回(買い目通知+オッズ記録)
+            esac
           fi
           # 稼働期間判定: 6/1〜8/31 (新馬は6/1-, 芝/ダは6/16- とPython側(summer_schedule)で戦略別に絞る)
           MO=$(date +%m); SEASON=no
@@ -71,7 +73,11 @@ jobs:
         run: |
           DATE="${{ github.event.inputs.date }}"; [ -z "$DATE" ] && DATE=$(date +%Y%m%d)
           cd keiba-dashboard
-          python3 -m live.summer_${{ steps.m.outputs.mode }} "$DATE"
+          if [ "${{ steps.m.outputs.mode }}" = "odds" ]; then
+            python3 -m live.odds_log "$DATE"          # 全レースのオッズ記録(較正用)
+          else
+            python3 -m live.summer_${{ steps.m.outputs.mode }} "$DATE"
+          fi
 
       - name: Commit state
         if: steps.m.outputs.season == 'yes'
