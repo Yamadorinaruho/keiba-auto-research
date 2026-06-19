@@ -12,7 +12,7 @@ from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch
 from live.summer_notify import prev_run, lin_bonus   # 前走rel/着順/父/キャリア・血統加点を共用
 from live import summer_dirt                          # ダート第2戦略の対象判定
 from live import summer_shinba                        # 新馬第3戦略(エピ系)の対象判定
-from live.sire_lineage_map import LINEAGE
+from live.sire_lineage_map import LINEAGE, lineage_of
 from live import notify
 from bs4 import BeautifulSoup
 
@@ -48,11 +48,11 @@ def cands_for(s, hfilter, date_iso):
         if not hfilter(h) or not h.get("馬ID"):
             continue
         try:
-            rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso)
+            rel, fin, sire, n_prev, pstat = prev_run(h["馬ID"], date_iso)
         except Exception:
-            rel = fin = sire = None; n_prev = 0
+            rel = fin = sire = pstat = None; n_prev = 0
         out.append({"umaban": h["馬番"], "horse": h["馬名"], "rel": rel, "fin": fin,
-                    "lin": LINEAGE.get(sire) if sire else None, "n_prev": n_prev})
+                    "lin": lineage_of(sire), "n_prev": n_prev, "pstat": pstat})
     return out
 
 
@@ -124,7 +124,7 @@ def main():
             lines.append("  (score2以上なし／当日の馬体重次第)")
         for c in cands2:
             relstr = f"4角{c['rel']:.0%}" if c["rel"] is not None else "4角不明"
-            finstr = f"前走{c['fin']}着" if c["fin"] is not None else "前走?"
+            finstr = f"前走{c['fin']}着" if c["fin"] is not None else (c.get("pstat") or "前走?")
             lines.append(f"  [score{st(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'})")
     msg = "\n".join(lines) if races else f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
     print(msg)

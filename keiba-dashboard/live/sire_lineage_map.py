@@ -83,4 +83,25 @@ LINEAGE = {
     "ゴールドアクター": "ロベルト系", "ルヴァンスレーヴ": "ロベルト系",  # スクリーンヒーロー/シンボリクリスエス産駒
     "ナダル": "ロベルト系",  # Blame(Kris S.=ロベルト系)産駒 ※米国産だが父系はロベルト
     "ミッキーロケット": "キンカメ系",  # キングカメハメハ産駒(追加)
+    # サクラバクシンオー系(プリンスリーギフト/テスコボーイ系のスプリント血脈)
+    "サクラバクシンオー": "サクラバクシンオー系", "ビッグアーサー": "サクラバクシンオー系",
+    "ショウナンカンプ": "サクラバクシンオー系", "グランプリボス": "サクラバクシンオー系",
+    "Palace Pier": "欧州系",  # Kingman(Invincible Spirit系)産駒
 }
+
+import re as _re
+_NONASCII = _re.compile(r'^[^\x00-\x7f]+')
+
+
+def lineage_of(sire):
+    """種牡馬名から小系統を引く。netkeibaは外国産種牡馬を「カタカナ+英語」連結で返すため
+    (例 'ブリックスアンドモルタルBricks and Mortar')、表記ズレを正規化して照合する。"""
+    if not sire:
+        return None
+    if sire in LINEAGE:           # 完全一致
+        return LINEAGE[sire]
+    m = _NONASCII.match(sire)     # 先頭の非ASCII(カタカナ/漢字)部分で照合
+    if m and m.group(0) in LINEAGE:
+        return LINEAGE[m.group(0)]
+    eng = sire[m.end():].strip() if m else sire   # 残りの英字部分で照合(英語キー対応)
+    return LINEAGE.get(eng)

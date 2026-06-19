@@ -16,7 +16,7 @@ import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, parse_horse, fetch, live_odds
 from live import notify
-from live.sire_lineage_map import LINEAGE
+from live.sire_lineage_map import LINEAGE, lineage_of
 from bs4 import BeautifulSoup
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
@@ -55,8 +55,12 @@ def get_weight(race_id):
     return out
 
 
+_PSTAT = {"除": "前走除外", "中": "前走中止", "取": "前走取消", "失": "前走失格", "降": "前走降着"}
+
+
 def prev_run(horse_id, before_date):
-    """前走の (4角/頭数=相対位置, 着順, 父名, 過去出走数) を返す。
+    """前走の (4角/頭数=相対位置, 着順, 父名, 過去出走数, 前走状態) を返す。
+    前走状態=着順が非数値(除外/中止/取消/失格等)のときのラベル、通常はNone。
     過去出走数=before_dateより前のレース数(=今走を含めると n_prev+1 戦目)"""
     sire = None
     try:
@@ -68,9 +72,9 @@ def prev_run(horse_id, before_date):
     soup = BeautifulSoup(html, "html.parser")
     t = soup.select_one(".db_h_race_results")
     if not t:
-        return None, None, sire, 0
+        return None, None, sire, 0, None
     idx = {h.get_text(strip=True): i for i, h in enumerate(t.select("thead th"))}
-    rel = fin = None
+    rel = fin = pstat = None
     n_prev = 0
     captured = False
     for tr in t.select("tbody tr"):
@@ -83,7 +87,10 @@ def prev_run(horse_id, before_date):
         n_prev += 1
         if not captured:  # 最新(=前走)行のみ rel/着順を採用
             captured = True
-            fin = int(tds[idx["着順"]]) if "着順" in idx and tds[idx["着順"]].isdigit() else None
+            raw = tds[idx["着順"]] if "着順" in idx else ""
+            fin = int(raw) if raw.isdigit() else None
+            if fin is None and raw:   # 着順が非数値=除外/中止/取消/失格など
+                pstat = _PSTAT.get(raw[0], f"前走{raw}")
             nrun = int(tds[idx["頭数"]]) if "頭数" in idx and tds[idx["頭数"]].isdigit() else None
             c4 = None
             # 通過順の最終コーナー値を採用。ダ1000等で「11」のように単一値(ハイフン無し)の
@@ -93,7 +100,7 @@ def prev_run(horse_id, before_date):
                 if last.isdigit():
                     c4 = int(last)
             rel = (c4 / nrun) if (c4 and nrun) else None
-    return rel, fin, sire, n_prev
+    return rel, fin, sire, n_prev, pstat
 
 
 def axes(c):
@@ -101,7 +108,7 @@ def axes(c):
     lin = c.get("lin")
     b = lin_bonus(lin)
     return [("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "4角不明"),
-            ("前走6着以下", c["前着"] is not None and c["前着"] >= 6, f"前走{c['前着']}着" if c["前着"] is not None else "前走不明"),
+            ("前走6着以下", c["前着"] is not None and c["前着"] >= 6, f"前走{c['前着']}着" if c["前着"] is not None else (c.get("pstat") or "前走不明")),
             ("馬体重420-470", c["体重"] is not None and 420 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
             (f"妙味血統+{b}", b > 0, f"{lin or '血統不明'}(+{b})")]
 
@@ -139,17 +146,17 @@ def build_pick(race_id, feats, date_iso):
         wt = wmap.get(h["馬番"])
         f = fmap.get(h["馬番"])
         if f is not None:   # 朝に計算済みの不変特徴を利用
-            rel, fin, lin, n_prev = f["rel"], f["fin"], f["lin"], f["n_prev"]
+            rel, fin, lin, n_prev, pstat = f["rel"], f["fin"], f["lin"], f["n_prev"], f.get("pstat")
         else:               # フォールバック: 未計算なら直前に取得
-            rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0)
-            lin = LINEAGE.get(sire) if sire else None
+            rel, fin, sire, n_prev, pstat = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
+            lin = lineage_of(sire)
         if n_prev < 2:   # 1-2戦目(過去出走0-1)は見限り妙味が未成熟なため除外 (decision 160)
             continue
         sc = (int(rel is not None and rel > 0.33)
               + int(fin is not None and fin >= 6) + int(wt is not None and 420 <= wt <= 470)
               + lin_bonus(lin))
         cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds,
-                      "rel": rel, "前着": fin, "体重": wt, "lin": lin, "score": sc})
+                      "rel": rel, "前着": fin, "体重": wt, "lin": lin, "pstat": pstat, "score": sc})
     if not cands:
         return None
     cands.sort(key=lambda x: (-x["score"], -x["odds"]))

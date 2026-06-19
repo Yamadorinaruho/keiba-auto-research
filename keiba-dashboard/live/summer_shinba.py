@@ -9,7 +9,7 @@
   ※エフフォーリア(エピ産駒・社台SS)は2026年から初年度産駒がデビュー。エピ直仔は逓減するため両父を対象。
 使い方: python3 -m live.summer_shinba [YYYYMMDD]
 """
-import sys, os, datetime
+import sys, os, re, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, parse_horse, live_odds
 from live.summer_notify import BET_PER
@@ -20,9 +20,14 @@ SIRES = {"エピファネイア", "エフフォーリア"}
 
 def horse_sire(horse_id):
     try:
-        return parse_horse(horse_id).get("sire") or None
+        s = parse_horse(horse_id).get("sire") or None
     except Exception:
         return None
+    if s:   # 外国産種牡馬の「カタカナ+英語」連結を正規化(エピ系判定の表記ズレ対策)
+        m = re.match(r"^[^\x00-\x7f]+", s)
+        if m:
+            s = m.group(0)
+    return s
 
 
 def is_target_race(s):

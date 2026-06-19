@@ -16,7 +16,7 @@ import sys, os, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, live_odds
 from live.summer_notify import prev_run, get_weight, BET_PER, MIN_SCORE
-from live.sire_lineage_map import LINEAGE
+from live.sire_lineage_map import LINEAGE, lineage_of
 from live import notify
 
 US = {"米国系"}   # ダートの妙味血統(芝のディープ/サンデーとは逆)
@@ -34,7 +34,7 @@ def dirt_axes(c):
     return [("前付け(逃げ先行)", front(rel), f"4角{rel:.0%}" if rel is not None else "4角不明"),
             ("米国系", c.get("lin") in US, c.get("lin") or "血統不明"),
             ("馬体重450-490", c["体重"] is not None and 450 <= c["体重"] <= 490, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
-            ("前走9着以内", c["前着"] is not None and c["前着"] <= 9, f"前走{c['前着']}着" if c["前着"] is not None else "前走不明")]
+            ("前走9着以内", c["前着"] is not None and c["前着"] <= 9, f"前走{c['前着']}着" if c["前着"] is not None else (c.get("pstat") or "前走不明"))]
 
 
 def dirt_reason(c):
@@ -64,15 +64,15 @@ def build_dirt_pick(race_id, feats, date_iso):
         wt = wmap.get(h["馬番"])
         f = fmap.get(h["馬番"])
         if f is not None:
-            rel, fin, lin, n_prev = f["rel"], f["fin"], f["lin"], f["n_prev"]
+            rel, fin, lin, n_prev, pstat = f["rel"], f["fin"], f["lin"], f["n_prev"], f.get("pstat")
         else:
-            rel, fin, sire, n_prev = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0)
-            lin = LINEAGE.get(sire) if sire else None
+            rel, fin, sire, n_prev, pstat = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
+            lin = lineage_of(sire)
         if n_prev < 2:   # キャリア3戦目以上
             continue
         sc = (int(front(rel)) + int(lin in US)
               + int(wt is not None and 450 <= wt <= 490) + int(fin is not None and fin <= 9))
-        cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds,
+        cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds, "pstat": pstat,
                       "rel": rel, "前着": fin, "体重": wt, "lin": lin, "score": sc})
     if not cands:
         return None
