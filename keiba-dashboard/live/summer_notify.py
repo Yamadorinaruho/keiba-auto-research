@@ -86,11 +86,12 @@ def prev_run(horse_id, before_date):
             fin = int(tds[idx["着順"]]) if "着順" in idx and tds[idx["着順"]].isdigit() else None
             nrun = int(tds[idx["頭数"]]) if "頭数" in idx and tds[idx["頭数"]].isdigit() else None
             c4 = None
-            if "通過" in idx and "-" in tds[idx["通過"]]:
-                try:
-                    c4 = int(tds[idx["通過"]].split("-")[-1])
-                except ValueError:
-                    pass
+            # 通過順の最終コーナー値を採用。ダ1000等で「11」のように単一値(ハイフン無し)の
+            # ケースも拾う(従来は"-"必須で取りこぼし→前付け判定漏れ)。
+            if "通過" in idx and tds[idx["通過"]]:
+                last = tds[idx["通過"]].split("-")[-1]
+                if last.isdigit():
+                    c4 = int(last)
             rel = (c4 / nrun) if (c4 and nrun) else None
     return rel, fin, sire, n_prev
 
@@ -99,7 +100,7 @@ def axes(c):
     rel = c["rel"]
     lin = c.get("lin")
     b = lin_bonus(lin)
-    return [("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "前走不明"),
+    return [("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "4角不明"),
             ("前走6着以下", c["前着"] is not None and c["前着"] >= 6, f"前走{c['前着']}着" if c["前着"] is not None else "前走不明"),
             ("馬体重420-470", c["体重"] is not None and 420 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
             (f"妙味血統+{b}", b > 0, f"{lin or '血統不明'}(+{b})")]
@@ -186,7 +187,8 @@ def main():
         if phase == "early" and r.get("notified_final"):
             continue   # 既に最終を出していれば暫定は不要(GA遅延での逆転対策)
         lead_i = int(round(lead))
-        label = "🔔 *締切直前・最終買い目*" if phase == "final" else "🕐 *発走15分前・暫定*"
+        label = ("━━━━━━━━━━━━━━\n"
+                 + ("🔔 *締切直前・最終買い目*" if phase == "final" else "🕐 *発走15分前・暫定*"))
         if r.get("strat") in ("dirt", "shinba"):   # ダート第2/新馬第3戦略は専用処理に委譲
             try:
                 if r.get("strat") == "dirt":

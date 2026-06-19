@@ -31,7 +31,7 @@ def front(rel):   # 前付け(逃げ・先行) ≒ 前走4角が前1/3 (rel<=0.3
 
 def dirt_axes(c):
     rel = c["rel"]
-    return [("前付け(逃げ先行)", front(rel), f"4角{rel:.0%}" if rel is not None else "前走不明"),
+    return [("前付け(逃げ先行)", front(rel), f"4角{rel:.0%}" if rel is not None else "4角不明"),
             ("米国系", c.get("lin") in US, c.get("lin") or "血統不明"),
             ("馬体重450-490", c["体重"] is not None and 450 <= c["体重"] <= 490, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
             ("前走9着以内", c["前着"] is not None and c["前着"] <= 9, f"前走{c['前着']}着" if c["前着"] is not None else "前走不明")]

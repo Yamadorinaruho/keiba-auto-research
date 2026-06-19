@@ -104,7 +104,8 @@ def main():
                 + int(c["lin"] == "米国系") + int(c["fin"] is not None and c["fin"] <= 9))
     ns = sum(r["strat"] == "shiba" for r in races); nd = sum(r["strat"] == "dirt" for r in races)
     nb = sum(r["strat"] == "shinba" for r in races)
-    lines = [f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
+    lines = ["━━━━━━━━━━━━━━",
+             f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
              "_score=馬体重抜きの事前点(score2以上のみ表示)。当日の馬体重+1でscore3=買い目。最終はオッズ・人気込みで発走15分前以内に通知_"]
     for r in races:
         rn = r.get("race_name", "")
@@ -122,7 +123,7 @@ def main():
         if not cands2:
             lines.append("  (score2以上なし／当日の馬体重次第)")
         for c in cands2:
-            relstr = f"4角{c['rel']:.0%}" if c["rel"] is not None else "前走不明"
+            relstr = f"4角{c['rel']:.0%}" if c["rel"] is not None else "4角不明"
             finstr = f"前走{c['fin']}着" if c["fin"] is not None else "前走?"
             lines.append(f"  [score{st(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'})")
     msg = "\n".join(lines) if races else f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"

@@ -62,7 +62,7 @@ def main():
     n = nhit = 0
     stake = ret = 0
     DIV = "━━━━━━━━━━━━━━"
-    lines = [f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{BET_PER:,}/点)", DIV, ""]
+    lines = [DIV, f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{BET_PER:,}/点)", DIV, ""]
     drift = []  # (venue, rno, 馬名, 通知時オッズ, 確定オッズ, 戦略別オッズ帯 or None)
     for r in bets:
         fin, pay, fodds = result(r["race_id"])
