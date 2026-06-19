@@ -81,7 +81,7 @@ def build_dirt_pick(race_id, feats, date_iso):
             "honmei": cands[0], "others": cands[1:]}
 
 
-def format_notify(venue, rno, post, lead_i, p):
+def format_notify(venue, rno, post, lead_i, p, bet=BET_PER):
     """発走15分前以内のダート買い目通知文(本番フォーマット)。"""
     allc = [p["honmei"]] + p["others"]
     buys = [c for c in allc if c["score"] >= MIN_SCORE]
@@ -90,7 +90,7 @@ def format_notify(venue, rno, post, lead_i, p):
     head = (f"🏜 *[ダート] {venue}{rno}R* {p['race_name']} (ダ{p['distance']}m)\n"
             f"⏱ 発走 {post} → *発走{lead_i}分前*")
     lines = [head, "━━━━━━━━━━━━━━",
-             f"🎯 *買い目: 単勝 各¥{BET_PER:,} (計¥{BET_PER*len(buys):,})*"]
+             f"🎯 *買い目: 単勝 各¥{bet:,} (計¥{bet*len(buys):,})*"]
     for c in buys:
         lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}*")
     lines += ["━━━━━━━━━━━━━━",
@@ -114,14 +114,14 @@ def target_horse(h):
     return h.get("性齢", "").startswith("牝")
 
 
-def process_race(r, date_iso, lead_i):
+def process_race(r, date_iso, lead_i, bet=BET_PER):
     """巡回から呼ぶ。(通知文 or None, state保存用picks) を返す。"""
     p = build_dirt_pick(r["race_id"], r.get("cands"), date_iso)
     if not p:
         return None, []
     allc = [p["honmei"]] + p["others"]
     buys = [c for c in allc if c["score"] >= MIN_SCORE]
-    text = format_notify(r["venue"], r["rno"], r["post"], lead_i, p) if buys else None
+    text = format_notify(r["venue"], r["rno"], r["post"], lead_i, p, bet) if buys else None
     picks = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "score": c["score"]} for c in buys]
     return text, picks
 

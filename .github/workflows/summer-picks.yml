@@ -86,7 +86,7 @@ jobs:
           if [ -n "$(git status --porcelain state/ 2>/dev/null)" ]; then
             git config user.name "github-actions"
             git config user.email "actions@github.com"
-            git add state/summer_sched_*.json state/odds_races_*.json state/odds_log_*.json
+            git add state/summer_sched_*.json state/odds_races_*.json state/odds_log_*.json state/bankroll.json
             git commit -m "summer picks state $(date +%F\ %H:%M)" || true
             git pull --rebase --autostash origin "${{ github.ref_name }}" || true
             git push || true

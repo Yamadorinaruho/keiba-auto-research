@@ -16,6 +16,7 @@ import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, parse_horse, fetch, live_odds
 from live import notify
+from live import bankroll
 from live.sire_lineage_map import LINEAGE, lineage_of
 from bs4 import BeautifulSoup
 
@@ -24,7 +25,7 @@ STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 # 毎分巡回前提。各回オッズを取り直して買い目を再算出。GA遅延に備え窓で判定。
 EARLY_HI = 15.0    # 発走15分前以内に入ったら暫定通知(早めの予告)
 FINAL_HI = 3.5     # 発走3分前以内になったら最終通知(締切直前。これ以下は最終扱い)
-BET_PER = 1000
+BET_PER = 1000     # フォールバック既定額。本番は bankroll.daily_unit(=残高0.5%/上限2万)を使う
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 # 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
 # ディープ系155%=+2, サンデー系他134%/カナロア系149%=+1, 他(米国系95%含む<100%)=0。除外なし。
@@ -176,6 +177,7 @@ def main():
         print(f"[skip] スケジュール未生成: {path}")
         return
     sched = json.load(open(path))
+    unit = bankroll.daily_unit(date_iso)   # 当日の1点額(残高0.5%/上限2万・朝に凍結)
     now = now_jst()
     changed = False
     for r in sched["races"]:
@@ -200,10 +202,10 @@ def main():
             try:
                 if r.get("strat") == "dirt":
                     from live import summer_dirt
-                    text, picks = summer_dirt.process_race(r, date_iso, lead_i)
+                    text, picks = summer_dirt.process_race(r, date_iso, lead_i, unit)
                 else:
                     from live import summer_shinba
-                    text, picks = summer_shinba.process_race(r, date_iso, lead_i)
+                    text, picks = summer_shinba.process_race(r, date_iso, lead_i, unit)
             except Exception as e:
                 print(f"[err-{r.get('strat')}] {r['race_id']}: {e}")
                 continue
@@ -243,7 +245,7 @@ def main():
             continue
         lines = [head,
                  "━━━━━━━━━━━━━━",
-                 f"🎯 *買い目: 単勝 各¥{BET_PER:,} (計¥{BET_PER*len(buys):,})*"]
+                 f"🎯 *買い目: 単勝 各¥{unit:,} (計¥{unit*len(buys):,})*"]
         for c in buys:
             lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}*")
         lines += [
