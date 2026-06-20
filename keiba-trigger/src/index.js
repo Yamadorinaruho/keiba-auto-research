@@ -33,9 +33,16 @@ async function dispatch(env, mode) {
 }
 
 export default {
-  // Cron Trigger: wrangler.toml の crons で発火(UTC)。巡回(notify)を叩く。
+  // Cron Trigger(3分毎)。稼働窓=土日 0-7 UTC(9-17 JST)のみGAを叩く。
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(dispatch(env, "notify"));
+    const d = new Date(event.scheduledTime);
+    const dow = d.getUTCDay();   // 0=日 6=土
+    const h = d.getUTCHours();
+    if ((dow === 6 || dow === 0) && h >= 0 && h <= 7) {
+      ctx.waitUntil(dispatch(env, "notify"));
+    } else {
+      console.log(`skip (UTC dow=${dow} h=${h} 稼働窓外)`);
+    }
   },
 
   // 手動テスト用: GET /?key=<TRIGGER_KEY>&mode=notify でdispatch。

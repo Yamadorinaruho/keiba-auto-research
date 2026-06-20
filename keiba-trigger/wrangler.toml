@@ -1,12 +1,13 @@
 name = "keiba-trigger"
 main = "src/index.js"
 compatibility_date = "2026-05-01"
+# cron専用。公開URL(workers.devサブドメイン)は不要。
+workers_dev = false
 
-# 土日 0:00-7:59 UTC (=9:00-16:59 JST) を3分毎に巡回(notify)をリモート起動。
-# GitHub Actionsの高頻度cronが自走しないためCloudflare Cron Triggerで代替。
-# 3分毎なら通知窓(各10分幅)に複数回入り、締切前(0-10分前)も確実に拾える。
+# 3分毎に起動し、稼働時間帯(土日0-7 UTC=9-17 JST)の判定はWorker側で行う。
+# (Cloudflareのcronは "*/3 0-7 * * 6,0" 形式を拒否するため単純式にしてコードで絞る)
 [triggers]
-crons = ["*/3 0-7 * * 6,0"]
+crons = ["*/3 * * * *"]
 
 [vars]
 GITHUB_OWNER = "Yamadorinaruho"
