@@ -154,6 +154,39 @@
      "n_prev": 5,
      "pstat": null
     }
+   ],
+   "notified_near": true,
+   "picks": [
+    {
+     "umaban": 11,
+     "horse": "アーミル",
+     "odds_pre": 50.0,
+     "score": 5
+    },
+    {
+     "umaban": 10,
+     "horse": "メメボス",
+     "odds_pre": 17.6,
+     "score": 5
+    },
+    {
+     "umaban": 2,
+     "horse": "ダーリンダーリン",
+     "odds_pre": 12.5,
+     "score": 4
+    },
+    {
+     "umaban": 4,
+     "horse": "モーリア",
+     "odds_pre": 55.2,
+     "score": 3
+    },
+    {
+     "umaban": 13,
+     "horse": "ドルマバフチェ",
+     "odds_pre": 37.4,
+     "score": 3
+    }
    ]
   }
  ]
