@@ -502,7 +502,8 @@
     }
    ],
    "notified_early": true,
-   "picks": []
+   "picks": [],
+   "notified_final": true
   },
   {
    "race_id": "202605030507",
