@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
 # 巡回(*/3)が回るたびに、発走 LEAD_MAX 分以内のレースを毎回通知(オッズ・馬体重を取り直し)。
 # = 3分ごとに最新オッズで買い目を送り続ける(dedupなし)。発走が近いほどラベルを締切寄りに。
-LEAD_MAX = 20.0
+LEAD_MAX = 180.0   # [一時テスト] 3分毎発火検証のため3時間に拡大。検証後20.0へ戻す
 BET_PER = 1000     # フォールバック既定額。本番は bankroll.daily_unit(=残高0.5%/上限2万)を使う
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 # 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
