@@ -28,9 +28,10 @@ permissions:
   contents: write   # state json をコミットして巡回間で共有
 
 concurrency:
-  # cron毎に別グループ。毎分巡回が前回の取りこぼし無く回るよう、滞留したら新しい方を優先。
+  # mode毎に別グループ。巡回(notify)は前の実行をキャンセルせず完走させる(false)。
+  # =全レースを処理しきってから次の巡回に進む(後発レースの取りこぼし防止)。直列実行。
   group: summer-picks-${{ github.event.schedule || github.event.inputs.mode || 'manual' }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   run:

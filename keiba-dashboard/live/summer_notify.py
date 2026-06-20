@@ -21,13 +21,9 @@ from live.sire_lineage_map import LINEAGE, lineage_of
 from bs4 import BeautifulSoup
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
-# 各回オッズ・馬体重を取り直して買い目を再算出。GA遅延に備え窓(幅)で判定。
-# 発走前の通知窓を3段(各10分幅)に分割。10分毎巡回(*/10)だと各窓に必ず1回入るので
-# 1レース最大3回(速報→暫定→締切前)通知できる。3.5分等の狭い窓は*/10では拾えないため廃止。
-#   (下限, 上限, フェーズ名, ラベル)  ※発走まで lead 分
-WINDOWS = [(0.0, 10.0, "near",  "🔔 *締切前・最終買い目* (発走〜10分前)"),
-           (10.0, 20.0, "mid",  "🕐 *暫定買い目* (発走10〜20分前)"),
-           (20.0, 30.0, "early", "📣 *速報・対象レース予告* (発走20〜30分前)")]
+# 巡回(*/3)が回るたびに、発走 LEAD_MAX 分以内のレースを毎回通知(オッズ・馬体重を取り直し)。
+# = 3分ごとに最新オッズで買い目を送り続ける(dedupなし)。発走が近いほどラベルを締切寄りに。
+LEAD_MAX = 20.0
 BET_PER = 1000     # フォールバック既定額。本番は bankroll.daily_unit(=残高0.5%/上限2万)を使う
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 # 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
@@ -183,20 +179,19 @@ def main():
     unit = bankroll.daily_unit(date_iso)   # 当日の1点額(残高0.5%/上限2万・朝に凍結)
     now = now_jst()
     changed = False
+    blocks = []   # 窓内レースを1巡回=1メッセージに集約(時間が被っても1通)
     for r in sched["races"]:
         hh, mm = map(int, r["post"].split(":"))
         post_dt = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
         lead = (post_dt - now).total_seconds() / 60.0  # 発走まで何分
-        # フェーズ判定: 該当する通知窓(速報20-30/暫定10-20/締切前0-10分前)を選ぶ
-        phase = lab = None
-        for lo, hi, name, l in WINDOWS:
-            if lo < lead <= hi:
-                phase, lab = name, l
-                break
-        if phase is None or r.get(f"notified_{phase}"):
+        # 発走LEAD_MAX分以内なら毎回通知(*/3が回るたび=3分ごと、dedupなし)
+        if not (0 < lead <= LEAD_MAX):
             continue
         lead_i = int(round(lead))
-        label = "━━━━━━━━━━━━━━\n" + lab
+        tier = ("🔔 *締切直前・最終買い目*" if lead <= 5 else
+                "🕐 *発走間近・買い目*" if lead <= 12 else
+                "📣 *速報・買い目*")
+        hdr = f"{tier} (発走{lead_i}分前)"
         if r.get("strat") in ("dirt", "shinba"):   # ダート第2/新馬第3戦略は専用処理に委譲
             try:
                 if r.get("strat") == "dirt":
@@ -208,22 +203,18 @@ def main():
             except Exception as e:
                 print(f"[err-{r.get('strat')}] {r['race_id']}: {e}")
                 continue
-            r[f"notified_{phase}"] = True
-            r["picks"] = picks   # 最終で上書き(締切に近い買い目を収支に使う)
+            r["picks"] = picks   # 毎回上書き(締切に近い買い目を収支に使う)
             changed = True
             if text:
-                text = label + "\n" + text
-                print(text)
-                notify.send(text)
+                blocks.append(hdr + "\n" + text)
             else:
-                print(f"[{r.get('strat')}] {r['venue']}{r['rno']}R → 買い目なし({phase})")
+                print(f"[{r.get('strat')}] {r['venue']}{r['rno']}R → 買い目なし(発走{lead_i}分前)")
             continue
         try:
             p = build_pick(r["race_id"], r.get("cands"), date_iso)
         except Exception as e:
             print(f"[err] {r['race_id']}: {e}")
             continue
-        r[f"notified_{phase}"] = True
         changed = True
         if not p:
             r["picks"] = []
@@ -232,9 +223,9 @@ def main():
         allc = [p["honmei"]] + p["others"]
         buys = [c for c in allc if c["score"] >= MIN_SCORE]
         r["picks"] = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "score": c["score"]} for c in buys]
-        head = (f"{label}\n"
+        head = (f"{hdr}\n"
                 f"🏇 *{r['venue']}{r['rno']}R* {p['race_name']} ({p['distance']}m)\n"
-                f"⏱ 発走 {r['post']} / 現在 {now.strftime('%H:%M')} → *発走{lead_i}分前*")
+                f"⏱ 発走 {r['post']} → *発走{lead_i}分前*")
         if not buys:
             print(f"{head}  → 買い目なし(最高score {allc[0]['score']})")
             continue
@@ -254,9 +245,13 @@ def main():
         skipped = [c for c in allc if c["score"] < MIN_SCORE]
         if skipped:
             lines.append("_見送り(score<3): " + " , ".join(f"{c['馬番']}{c['馬名']}(s{c['score']})" for c in skipped) + "_")
-        text = "\n".join(lines)
-        print(text)
-        notify.send(text)
+        blocks.append("\n".join(lines))
+    if blocks:
+        DIV = "━━━━━━━━━━━━━━"
+        header = f"{DIV}\n🐎 *夏戦略 買い目 {now.strftime('%H:%M')}時点* (発走20分以内 {len(blocks)}R・3分毎更新)"
+        msg = header + "\n" + (f"\n{DIV}\n".join(blocks))
+        print(msg)
+        notify.send(msg)
     if changed:
         json.dump(sched, open(path, "w"), ensure_ascii=False, indent=1)
         print("[state] updated")
