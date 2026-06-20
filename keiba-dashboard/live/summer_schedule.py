@@ -132,12 +132,13 @@ def main():
         lines.append(f"\n*{r['post']} [{tag}]{r['venue']}{r['rno']}R* {rn} {dist}")
         # 構造2以上のみ表示(馬体重+1が当日乗ればscore3=買い目に届く候補)。構造1以下は最大2で買えない。
         cands2 = sorted([c for c in r["cands"] if c["n_prev"] >= 2 and st(c) >= 2], key=lambda c: -st(c))
-        if not cands2:
-            lines.append("  (score2以上なし／当日の馬体重次第)")
         for c in cands2:
             relstr = f"4角{c['rel']:.0%}" if c["rel"] is not None else "4角不明"
             finstr = f"前走{c['fin']}着" if c["fin"] is not None else (c.get("pstat") or "前走?")
             lines.append(f"  [score{st(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'}){odds_str(omap, c['umaban'])}")
+        if not any(st(c) >= 3 for c in cands2):   # score3+(=現時点の買い目)が無いレースは明示
+            lines.append("  → 🚫 *買い目なし*" + ("(score2以上なし)" if not cands2
+                         else "(最高score2・当日馬体重が範囲内なら+1で復活あり)"))
     msg = "\n".join(lines) if races else f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
     print(msg)
     notify.send(msg)
