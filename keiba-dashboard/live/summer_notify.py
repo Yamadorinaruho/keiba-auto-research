@@ -21,10 +21,13 @@ from live.sire_lineage_map import LINEAGE, lineage_of
 from bs4 import BeautifulSoup
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
-# 買い目通知は1レース最大2回: 発走15分前(暫定)と3分前(締切直前の最終)。
-# 毎分巡回前提。各回オッズを取り直して買い目を再算出。GA遅延に備え窓で判定。
-EARLY_HI = 15.0    # 発走15分前以内に入ったら暫定通知(早めの予告)
-FINAL_HI = 3.5     # 発走3分前以内になったら最終通知(締切直前。これ以下は最終扱い)
+# 各回オッズ・馬体重を取り直して買い目を再算出。GA遅延に備え窓(幅)で判定。
+# 発走前の通知窓を3段(各10分幅)に分割。10分毎巡回(*/10)だと各窓に必ず1回入るので
+# 1レース最大3回(速報→暫定→締切前)通知できる。3.5分等の狭い窓は*/10では拾えないため廃止。
+#   (下限, 上限, フェーズ名, ラベル)  ※発走まで lead 分
+WINDOWS = [(0.0, 10.0, "near",  "🔔 *締切前・最終買い目* (発走〜10分前)"),
+           (10.0, 20.0, "mid",  "🕐 *暫定買い目* (発走10〜20分前)"),
+           (20.0, 30.0, "early", "📣 *速報・対象レース予告* (発走20〜30分前)")]
 BET_PER = 1000     # フォールバック既定額。本番は bankroll.daily_unit(=残高0.5%/上限2万)を使う
 MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 # 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
@@ -184,20 +187,16 @@ def main():
         hh, mm = map(int, r["post"].split(":"))
         post_dt = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
         lead = (post_dt - now).total_seconds() / 60.0  # 発走まで何分
-        # フェーズ判定: 3分前以内=最終 / 3〜15分前=暫定
-        if 0 < lead <= FINAL_HI:
-            phase = "final"
-        elif FINAL_HI < lead <= EARLY_HI:
-            phase = "early"
-        else:
+        # フェーズ判定: 該当する通知窓(速報20-30/暫定10-20/締切前0-10分前)を選ぶ
+        phase = lab = None
+        for lo, hi, name, l in WINDOWS:
+            if lo < lead <= hi:
+                phase, lab = name, l
+                break
+        if phase is None or r.get(f"notified_{phase}"):
             continue
-        if r.get(f"notified_{phase}"):
-            continue
-        if phase == "early" and r.get("notified_final"):
-            continue   # 既に最終を出していれば暫定は不要(GA遅延での逆転対策)
         lead_i = int(round(lead))
-        label = ("━━━━━━━━━━━━━━\n"
-                 + ("🔔 *締切直前・最終買い目*" if phase == "final" else "🕐 *発走15分前・暫定*"))
+        label = "━━━━━━━━━━━━━━\n" + lab
         if r.get("strat") in ("dirt", "shinba"):   # ダート第2/新馬第3戦略は専用処理に委譲
             try:
                 if r.get("strat") == "dirt":
@@ -210,8 +209,6 @@ def main():
                 print(f"[err-{r.get('strat')}] {r['race_id']}: {e}")
                 continue
             r[f"notified_{phase}"] = True
-            if phase == "final":
-                r["notified_early"] = True
             r["picks"] = picks   # 最終で上書き(締切に近い買い目を収支に使う)
             changed = True
             if text:
@@ -227,8 +224,6 @@ def main():
             print(f"[err] {r['race_id']}: {e}")
             continue
         r[f"notified_{phase}"] = True
-        if phase == "final":
-            r["notified_early"] = True
         changed = True
         if not p:
             r["picks"] = []

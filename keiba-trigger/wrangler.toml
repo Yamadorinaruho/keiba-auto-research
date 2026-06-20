@@ -1,0 +1,18 @@
+name = "keiba-trigger"
+main = "src/index.js"
+compatibility_date = "2026-05-01"
+
+# 土日 0:00-7:59 UTC (=9:00-16:59 JST) を3分毎に巡回(notify)をリモート起動。
+# GitHub Actionsの高頻度cronが自走しないためCloudflare Cron Triggerで代替。
+# 3分毎なら通知窓(各10分幅)に複数回入り、締切前(0-10分前)も確実に拾える。
+[triggers]
+crons = ["*/3 0-7 * * 6,0"]
+
+[vars]
+GITHUB_OWNER = "Yamadorinaruho"
+GITHUB_REPO = "keiba-auto-research"
+WORKFLOW_FILE = "summer-picks.yml"
+GIT_REF = "main"
+# 機密はsecretで(平文で置かない):
+#   wrangler secret put GITHUB_TOKEN   # fine-grained PAT: Actions=Read and write
+#   wrangler secret put TRIGGER_KEY    # 手動テスト用の任意キー(省略可)
