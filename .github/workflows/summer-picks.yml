@@ -10,7 +10,7 @@ name: summer picks
 on:
   schedule:
     - cron: "0 22 * * 5,6"              # 土/日 7:00 JST : 朝(発走時刻リスト)
-    - cron: "* 0-7 * * 6,0"             # 土/日 9:00-16:59 JST 毎分 : 巡回(買い目通知 + 全レース10〜1分前オッズ記録) ※GA都合で実際は数分間隔になりうる
+    - cron: "*/5 0-7 * * 6,0"           # 土/日 9:00-16:59 JST 5分毎 : 巡回(買い目通知 + 全レース10〜1分前オッズ記録) ※毎分(* * * *)はGAがドロップするため5分毎。早め通知(発走3.5〜15分前)はこの間隔で確実に1回拾える
     - cron: "30 11 * * 6,0"             # 土/日 20:30 JST : 夜(収支)
   workflow_dispatch:
     inputs:
@@ -83,10 +83,15 @@ jobs:
         if: steps.m.outputs.season == 'yes'
         run: |
           cd keiba-dashboard
-          if [ -n "$(git status --porcelain state/ 2>/dev/null)" ]; then
+          # 各globは該当ファイルが無い回がある(朝はodds無し等)。bash -e で落とさないよう個別add+|| true。
+          # state全体(netkeiba_cache等)はaddしない。対象jsonのみ。
+          for pat in summer_sched_ odds_races_ odds_log_; do
+            git add state/${pat}*.json 2>/dev/null || true
+          done
+          git add state/bankroll.json 2>/dev/null || true
+          if [ -n "$(git diff --cached --name-only)" ]; then
             git config user.name "github-actions"
             git config user.email "actions@github.com"
-            git add state/summer_sched_*.json state/odds_races_*.json state/odds_log_*.json state/bankroll.json
             git commit -m "summer picks state $(date +%F\ %H:%M)" || true
             git pull --rebase --autostash origin "${{ github.ref_name }}" || true
             git push || true
