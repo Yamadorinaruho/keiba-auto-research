@@ -1,6 +1,6 @@
 {
  "balance": 200000,
- "unit_date": null,
- "unit": null,
+ "unit_date": "2026-06-21",
+ "unit": 1000,
  "history": []
 }

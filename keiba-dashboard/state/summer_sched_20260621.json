@@ -154,6 +154,27 @@
      "n_prev": 7,
      "pstat": null
     }
+   ],
+   "notified_early": true,
+   "picks": [
+    {
+     "umaban": 6,
+     "horse": "クリーンブーケ",
+     "odds_pre": 50.4,
+     "score": 4
+    },
+    {
+     "umaban": 4,
+     "horse": "スワトウ",
+     "odds_pre": 15.4,
+     "score": 4
+    },
+    {
+     "umaban": 9,
+     "horse": "エコロアビス",
+     "odds_pre": 17.6,
+     "score": 3
+    }
    ]
   }
  ]
