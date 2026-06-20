@@ -155,6 +155,26 @@
      "n_prev": 7,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 6,
+     "horse": "クリーンブーケ",
+     "odds_pre": 56.2,
+     "score": 4
+    },
+    {
+     "umaban": 4,
+     "horse": "スワトウ",
+     "odds_pre": 16.0,
+     "score": 4
+    },
+    {
+     "umaban": 9,
+     "horse": "エコロアビス",
+     "odds_pre": 16.9,
+     "score": 3
+    }
    ]
   },
   {
@@ -212,7 +232,8 @@
      "n_prev": 3,
      "pstat": null
     }
-   ]
+   ],
+   "picks": []
   },
   {
    "race_id": "202602010403",
