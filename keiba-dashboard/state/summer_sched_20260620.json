@@ -312,6 +312,21 @@
      "horse": "ゴールデンハニビー",
      "sire": "エピファネイア"
     }
+   ],
+   "notified_early": true,
+   "picks": [
+    {
+     "umaban": 1,
+     "horse": "インサイドエッジ",
+     "odds_pre": null,
+     "sire": "エピファネイア"
+    },
+    {
+     "umaban": 10,
+     "horse": "ゴールデンハニビー",
+     "odds_pre": null,
+     "sire": "エピファネイア"
+    }
    ]
   },
   {
