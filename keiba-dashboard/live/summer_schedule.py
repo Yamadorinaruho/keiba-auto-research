@@ -8,7 +8,7 @@
 """
 import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch
+from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch, live_odds
 from live.summer_notify import prev_run, lin_bonus   # 前走rel/着順/父/キャリア・血統加点を共用
 from live import summer_dirt                          # ダート第2戦略の対象判定
 from live import summer_shinba                        # 新馬第3戦略(エピ系)の対象判定
@@ -110,14 +110,22 @@ def main():
     lines = ["━━━━━━━━━━━━━━",
              f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
              f"💰 *本日の1点 ¥{unit:,}* (残高¥{bk['balance']:,}×0.5%{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
-             "_score=馬体重抜きの事前点(score2以上のみ表示)。当日の馬体重+1でscore3=買い目。最終はオッズ・人気込みで発走15分前以内に通知_"]
+             "_score=馬体重抜きの事前点(score2以上のみ表示)。当日の馬体重+1でscore3=買い目。最終はオッズ・人気込みで発走15分前以内に通知_",
+             "_オッズ・人気は朝時点（未発売は無表示／締切まで大きく変動）_"]
+    def odds_str(omap, umaban):   # 朝時点のオッズ・人気(取れた馬のみ)
+        lo = omap.get(umaban)
+        return f" → {lo['odds']}倍{lo['pop']}人気" if lo else ""
     for r in races:
         rn = r.get("race_name", "")
         dist = f"{r['distance']}m" if r.get("distance") else ""
+        try:
+            _, omap = live_odds(r["race_id"])   # 朝の暫定オッズ(未発売なら空)
+        except Exception:
+            omap = {}
         if r["strat"] == "shinba":   # 新馬エピ系: 構造スコアなし。対象産駒を列挙
             lines.append(f"\n*{r['post']} [新馬]{r['venue']}{r['rno']}R* {rn} {dist}(エピ系全頭買い)")
             for c in r["cands"]:
-                lines.append(f"  {c['umaban']}番 {c['horse']} (父{c['sire']})")
+                lines.append(f"  {c['umaban']}番 {c['horse']} (父{c['sire']}){odds_str(omap, c['umaban'])}")
             continue
         st = struct_shiba if r["strat"] == "shiba" else struct_dirt
         tag = "芝" if r["strat"] == "shiba" else "ダ"
@@ -129,7 +137,7 @@ def main():
         for c in cands2:
             relstr = f"4角{c['rel']:.0%}" if c["rel"] is not None else "4角不明"
             finstr = f"前走{c['fin']}着" if c["fin"] is not None else (c.get("pstat") or "前走?")
-            lines.append(f"  [score{st(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'})")
+            lines.append(f"  [score{st(c)}] {c['umaban']}番 {c['horse']} ({finstr}/{relstr}/{c['lin'] or '血統-'}){odds_str(omap, c['umaban'])}")
     msg = "\n".join(lines) if races else f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
     print(msg)
     notify.send(msg)
