@@ -1,17 +1,6 @@
 {
- "balance": 196000,
- "unit_date": "2026-06-21",
- "unit": 900,
- "history": [
-  {
-   "date": "2026-06-20",
-   "unit": 1000,
-   "n": 4,
-   "hit": 0,
-   "stake": 4000,
-   "ret": 0,
-   "before": 200000,
-   "after": 196000
-  }
- ]
+ "balance": 200000,
+ "unit_date": null,
+ "unit": null,
+ "history": []
 }
