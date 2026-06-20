@@ -154,6 +154,27 @@
      "n_prev": 7,
      "pstat": null
     }
+   ],
+   "notified_mid": true,
+   "picks": [
+    {
+     "umaban": 6,
+     "horse": "クリーンブーケ",
+     "odds_pre": 29.2,
+     "score": 4
+    },
+    {
+     "umaban": 4,
+     "horse": "スワトウ",
+     "odds_pre": 15.5,
+     "score": 4
+    },
+    {
+     "umaban": 9,
+     "horse": "エコロアビス",
+     "odds_pre": 18.2,
+     "score": 3
+    }
    ]
   },
   {
@@ -227,6 +248,15 @@
      "lin": "ディープ系",
      "n_prev": 10,
      "pstat": null
+    }
+   ],
+   "notified_mid": true,
+   "picks": [
+    {
+     "umaban": 8,
+     "horse": "コウユーネロガ",
+     "odds_pre": 12.2,
+     "score": 3
     }
    ]
   }
