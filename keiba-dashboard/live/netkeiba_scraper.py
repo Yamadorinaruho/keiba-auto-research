@@ -52,13 +52,16 @@ def live_odds(race_id):
     """単勝の最新オッズをAJAXで取得(=ブラウザでリロードして見る値と同等)。
     返り値: (official_datetime, {馬番int: {'odds':float, 'pop':int}})。
     JRA公式更新時刻(official_datetime)も返るので、そのオッズの鮮度が正確に分かる。"""
-    raw = fetch(f"https://race.netkeiba.com/api/api_get_jra_odds.html?race_id={race_id}&type=1",
+    # action=update が無いと発走前のライブオッズが返らない(空)。type 1=単勝。
+    raw = fetch(f"https://race.netkeiba.com/api/api_get_jra_odds.html?race_id={race_id}&type=1&action=update",
                 cache_key=None, force=True)   # 常に最新を取得(キャッシュしない)
     try:
         j = json.loads(raw)
     except (json.JSONDecodeError, ValueError):
         return None, {}
-    if j.get("status") != "result":
+    # status: "middle"=発走前ライブ / "result"=確定。両方とも有効なオッズ。
+    # ("middle"を弾くと発走前の買い目判定でオッズ無し→芝/ダが買い目ゼロになる)
+    if not isinstance(j, dict) or j.get("status") not in ("middle", "result"):
         return None, {}
     d = j.get("data", {})
     out = {}
