@@ -659,6 +659,21 @@
      "n_prev": 0,
      "pstat": null
     }
+   ],
+   "notified_early": true,
+   "picks": [
+    {
+     "umaban": 6,
+     "horse": "アルデバローズ",
+     "odds_pre": 19.4,
+     "score": 3
+    },
+    {
+     "umaban": 13,
+     "horse": "バターショコラ",
+     "odds_pre": 11.4,
+     "score": 3
+    }
    ]
   },
   {
