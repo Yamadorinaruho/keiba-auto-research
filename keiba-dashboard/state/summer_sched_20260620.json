@@ -500,7 +500,9 @@
      "n_prev": 5,
      "pstat": null
     }
-   ]
+   ],
+   "notified_early": true,
+   "picks": []
   },
   {
    "race_id": "202605030507",
