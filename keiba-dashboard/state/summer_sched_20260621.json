@@ -155,6 +155,32 @@
      "n_prev": 7,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 4,
+     "horse": "スワトウ",
+     "odds_pre": 16.7,
+     "score": 5
+    },
+    {
+     "umaban": 2,
+     "horse": "キミノナハオリョウ",
+     "odds_pre": 52.9,
+     "score": 4
+    },
+    {
+     "umaban": 14,
+     "horse": "ミレニアルピンク",
+     "odds_pre": 48.1,
+     "score": 3
+    },
+    {
+     "umaban": 9,
+     "horse": "エコロアビス",
+     "odds_pre": 14.5,
+     "score": 3
+    }
    ]
   },
   {
