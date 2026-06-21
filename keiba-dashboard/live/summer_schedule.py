@@ -66,7 +66,8 @@ def main():
     shiba_dirt_on = md >= "06-16"
     shinba_on = md >= "06-01"
     races = []
-    for rid in get_race_ids_for_date(date):   # 全会場走査(ダートは全場対象)
+    race_ids = get_race_ids_for_date(date)
+    for rid in race_ids:   # 全会場走査(ダートは全場対象)
         venue = VENUE.get(rid[4:6])
         try:
             s = parse_shutuba(rid)
@@ -95,6 +96,20 @@ def main():
     races.sort(key=lambda x: x["post"])
     os.makedirs(STATE_DIR, exist_ok=True)
     path = os.path.join(STATE_DIR, f"summer_sched_{date}.json")
+    # ガード: レース一覧(race_ids)自体が0件=netkeiba取得失敗の疑い。既存スケジュールがあれば上書きしない。
+    # (レース当日でも全レース対象外で races==0 はあり得るが、その場合 race_ids は非空なので通常通り保存する)
+    if not race_ids:
+        prev = []
+        if os.path.exists(path):
+            try:
+                prev = json.load(open(path)).get("races", [])
+            except Exception:
+                prev = []
+        if prev:
+            warn = (f"⚠️ *夏戦略 スケジュール生成スキップ* {date_iso[5:].replace('-','/')}\n"
+                    f"  レース一覧が0件(netkeiba一時失敗の疑い)。既存{len(prev)}Rを保持し上書きを回避しました")
+            print(warn); notify.send(warn)
+            return
     with open(path, "w") as f:
         json.dump({"date": date_iso, "races": races}, f, ensure_ascii=False, indent=1)
     def struct_shiba(c):  # 芝: 前走中団以降+前走6着下+血統
