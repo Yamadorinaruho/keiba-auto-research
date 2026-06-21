@@ -315,7 +315,14 @@
      "pstat": null
     }
    ],
-   "picks": []
+   "picks": [
+    {
+     "umaban": 8,
+     "horse": "コウユーネロガ",
+     "odds_pre": 10.0,
+     "score": 3
+    }
+   ]
   },
   {
    "race_id": "202602010404",
