@@ -395,7 +395,13 @@
     {
      "umaban": 7,
      "horse": "トルークマクト",
-     "odds_pre": 29.4,
+     "odds_pre": 31.7,
+     "score": 3
+    },
+    {
+     "umaban": 2,
+     "horse": "ワダツミ",
+     "odds_pre": 30.9,
      "score": 3
     }
    ]
