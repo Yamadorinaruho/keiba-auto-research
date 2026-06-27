@@ -915,19 +915,19 @@
     {
      "umaban": 2,
      "horse": "モーブプリエール",
-     "odds_pre": 21.6,
+     "odds_pre": 24.0,
      "score": 4
     },
     {
      "umaban": 11,
      "horse": "レイナデルアイレ",
-     "odds_pre": 62.7,
+     "odds_pre": 66.3,
      "score": 3
     },
     {
      "umaban": 4,
      "horse": "グレイスルーラー",
-     "odds_pre": 32.5,
+     "odds_pre": 34.4,
      "score": 3
     }
    ]
@@ -996,13 +996,21 @@
      "n_prev": 6,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 4,
+     "horse": "ミサビスケッツ",
+     "odds_pre": 11.7,
+     "score": 3
+    }
    ]
   },
   {
    "race_id": "202603020108",
    "venue": "福島",
    "rno": 8,
-   "post": "14:00",
+   "post": "14:01",
    "race_name": "3歳未勝利",
    "distance": 2000,
    "notified": false,
