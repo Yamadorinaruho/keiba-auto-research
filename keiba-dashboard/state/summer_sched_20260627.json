@@ -1053,7 +1053,14 @@
      "pstat": null
     }
    ],
-   "picks": []
+   "picks": [
+    {
+     "umaban": 9,
+     "horse": "クリスタルドレス",
+     "odds_pre": 10.3,
+     "score": 3
+    }
+   ]
   },
   {
    "race_id": "202603020109",
