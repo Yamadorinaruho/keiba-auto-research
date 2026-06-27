@@ -27,3 +27,6 @@ dist-ssr
 .env
 state/ipat_shots/
 state/bet_log_*.json
+
+# lab.py の履歴再構築キャッシュ(36MB・DBから再生成可能)
+.lab_hist_cache.pkl

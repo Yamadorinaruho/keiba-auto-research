@@ -3,12 +3,9 @@
 芝の本命戦略(summer_notify)と独立した第2戦略。構造は芝と裏返し:
   芝 = 差し×ディープ系×負け巻き返し / ダート = 前付け×米国系×好走再現。
 
-母集団(decision 172): 夏 × 牝(全年齢) × ダート≤1400m × 未勝利〜OP × 全会場
-  × 人気4-12 × 単勝10-50倍 × キャリア3戦目以上(過去出走2戦以上)
-スコア(上限4・各+1): 前走前付け(rel≤0.33=逃げ・先行) + 米国系 + 馬体重450-490 + 前走9着以内
-  → score≥3 の該当馬を全部・単勝1000円。
-WF(2014-2025): ROI148% / 79頭/年 / 最悪年35% / +年9/12。
-※多軸スライスの末の数字で芝(素直な母集団152%)よりフォワード目減りリスク高い第2候補。
+母集団(v2 decision 182): 夏 × 3歳牝 × ダート≤1400m × 未勝利〜OP × 全会場
+  × 単勝10-50倍 × 3走目以上(過去出走2戦以上) × 父=米国系 を全頭買い(score・人気フィルタは撤廃)。
+  4歳以上は赤字(ROI96%)のため除外し3歳牝に。in-sample(2010-25): 55点/年 ROI144% 全+2,432円/年 +9/16。
 
 使い方: python3 -m live.summer_dirt [YYYYMMDD]
 """
@@ -29,89 +26,66 @@ def front(rel):   # 前付け(逃げ・先行) ≒ 前走4角が前1/3 (rel<=0.3
     return rel is not None and rel <= 0.33
 
 
-def dirt_axes(c):
-    rel = c["rel"]
-    return [("前付け(逃げ先行)", front(rel), f"4角{rel:.0%}" if rel is not None else "4角不明"),
-            ("米国系", c.get("lin") in US, c.get("lin") or "血統不明"),
-            ("馬体重450-490", c["体重"] is not None and 450 <= c["体重"] <= 490, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
-            ("前走9着以内", c["前着"] is not None and c["前着"] <= 9, f"前走{c['前着']}着" if c["前着"] is not None else (c.get("pstat") or "前走不明"))]
-
-
-def dirt_reason(c):
-    lbl = {"前付け(逃げ先行)": "前で運べる(砂向き)", "米国系": "米国系(ダート速力)",
-           "馬体重450-490": "好適馬体重", "前走9着以内": "前走で力を出せている"}
-    ok = [lbl[n] for n, hit, _ in dirt_axes(c) if hit]
-    return " / ".join(ok) if ok else "母集団該当のみ"
-
-
 def build_dirt_pick(race_id, feats, date_iso):
-    """feats: 朝(summer_dirt_schedule等)が計算した不変特徴 {馬番:{rel,fin,lin,n_prev}}。無ければ直前取得。"""
+    """v2(血統フィルタ): 3歳牝×ダ≤1400×未勝利〜OP×単勝10-50倍×3走目以上×父米国系を全頭買い。
+    score機構は撤廃(2026-06 decision 182)。feats: 朝に計算した不変特徴 {馬番:{lin,n_prev,...}}。"""
     s = parse_shutuba(race_id)
     if s["surface"] != "ダ" or s["class"] not in CLS_DIRT or s["distance"] > MAX_DIST:
         return None
-    wmap = get_weight(race_id)
     _, omap = live_odds(race_id)   # 最新の単勝オッズ・人気(AJAX=リロード相当)
     fmap = {f["umaban"]: f for f in (feats or [])}
-    cands = []
+    buys = []
     for h in s["horses"]:
-        if not h.get("性齢", "").startswith("牝"):   # 牝のみ(年齢不問)
+        sa = h.get("性齢", "")
+        if not (sa.startswith("牝") and sa.endswith("3")):   # 3歳牝(4歳以上は赤字のため除外 decision 182)
             continue
         lo = omap.get(h["馬番"])
         pop = lo["pop"] if lo else h.get("人気")
         odds = lo["odds"] if lo else h.get("単勝オッズ")
-        if pop is None or odds is None or not (4 <= pop <= 12) or not (10 <= odds < 50):
+        if odds is None or not (10 <= odds < 80):   # 単勝10-80倍(3歳牝化で上限拡大 人気は不問)
             continue
-        wt = wmap.get(h["馬番"])
         f = fmap.get(h["馬番"])
         if f is not None:
-            rel, fin, lin, n_prev, pstat = f["rel"], f["fin"], f["lin"], f["n_prev"], f.get("pstat")
+            lin, n_prev = f["lin"], f["n_prev"]
         else:
-            rel, fin, sire, n_prev, pstat = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
+            _, _, sire, n_prev, _ = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
             lin = lineage_of(sire)
-        if n_prev < 2:   # キャリア3戦目以上
+        if n_prev < 2:   # 3走目以上
             continue
-        sc = (int(front(rel)) + int(lin in US)
-              + int(wt is not None and 450 <= wt <= 490) + int(fin is not None and fin <= 9))
-        cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds, "pstat": pstat,
-                      "rel": rel, "前着": fin, "体重": wt, "lin": lin, "score": sc})
-    if not cands:
+        if lin not in US:   # 米国系のみ
+            continue
+        buys.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds, "lin": lin})
+    if not buys:
         return None
-    cands.sort(key=lambda x: (-x["score"], -x["odds"]))
-    return {"race_name": s["race_name"], "distance": s["distance"],
-            "honmei": cands[0], "others": cands[1:]}
+    buys.sort(key=lambda x: -x["odds"])
+    return {"race_name": s["race_name"], "distance": s["distance"], "buys": buys}
 
 
 def format_notify(venue, rno, post, lead_i, p, bet=BET_PER):
-    """発走15分前以内のダート買い目通知文(本番フォーマット)。"""
-    allc = [p["honmei"]] + p["others"]
-    buys = [c for c in allc if c["score"] >= MIN_SCORE]
-    if not buys:
-        return None
+    """発走15分前以内のダート買い目通知文(v2血統フィルタ)。"""
+    buys = p["buys"]
     head = (f"🏜 *[ダート] {venue}{rno}R* {p['race_name']} (ダ{p['distance']}m)\n"
             f"⏱ 発走 {post} → *発走{lead_i}分前*")
     lines = [head, "━━━━━━━━━━━━━━",
              f"🎯 *買い目: 単勝 各¥{bet:,} (計¥{bet*len(buys):,})*"]
     for c in buys:
-        lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}*")
+        lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}* ({c['人気']}人気 {c['odds']}倍 / 父系{c['lin']})")
     lines += ["━━━━━━━━━━━━━━",
-              f"_オッズ・人気は発走{lead_i}分前時点（締切まで変動します）_", "▼内訳"]
-    for c in buys:
-        ax = " ".join(f"{'✅' if hit else '⬜'}{n}({v})" for n, hit, v in dirt_axes(c))
-        lines.append(f"・{c['馬番']}番 *{c['馬名']}* {c['人気']}人気 *{c['odds']}倍* (score {c['score']}/4)")
-        lines.append(f"   {ax} → {dirt_reason(c)}")
+              f"_米国系×単勝10-80倍×3走目以上を全頭。オッズは発走{lead_i}分前時点（変動）_"]
     return "\n".join(lines)
 
 
 def is_target_race(s):
-    """出馬表sがダート第2戦略の対象レースか(牝が1頭でもいる ダ≤1400 未勝利〜OP)。"""
+    """出馬表sがダート第2戦略の対象レースか(3歳牝が1頭でもいる ダ≤1400 未勝利〜OP)。"""
     if s["surface"] != "ダ" or s["class"] not in CLS_DIRT or s["distance"] > MAX_DIST:
         return False
-    return any(h.get("性齢", "").startswith("牝") for h in s["horses"])
+    return any(target_horse(h) for h in s["horses"])
 
 
 def target_horse(h):
-    """ダート戦略の事前計算対象馬(牝・年齢不問)。"""
-    return h.get("性齢", "").startswith("牝")
+    """ダート戦略の事前計算対象馬(3歳牝)。"""
+    sa = h.get("性齢", "")
+    return sa.startswith("牝") and sa.endswith("3")
 
 
 def process_race(r, date_iso, lead_i, bet=BET_PER):
@@ -119,10 +93,9 @@ def process_race(r, date_iso, lead_i, bet=BET_PER):
     p = build_dirt_pick(r["race_id"], r.get("cands"), date_iso)
     if not p:
         return None, []
-    allc = [p["honmei"]] + p["others"]
-    buys = [c for c in allc if c["score"] >= MIN_SCORE]
-    text = format_notify(r["venue"], r["rno"], r["post"], lead_i, p, bet) if buys else None
-    picks = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "score": c["score"]} for c in buys]
+    buys = p["buys"]
+    text = format_notify(r["venue"], r["rno"], r["post"], lead_i, p, bet)
+    picks = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "lin": c["lin"]} for c in buys]
     return text, picks
 
 

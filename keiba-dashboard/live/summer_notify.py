@@ -4,12 +4,10 @@
 発走3〜15分前のレースだけ、馬体重・直前オッズ込みのスコアで本命算出→通知。
 通知済みフラグをstateに書き戻して二重通知を防ぐ。(3分毎巡回前提)
 
-スコア(decision 159/168): 前走4角中団以降(>0.33) + 前走6着以下 + 馬体重420-470
-  + 妙味血統(ディープ系+2 / サンデー系他・カナロア系+1)  ※外枠軸は死に軸で除外
-母集団: 3歳牝 芝 未勝利 4-12番人気 単勝10-70倍(30分前) (血統除外なし) decision 169
-  狙いは確定 人気4-12×単勝10-80。上向きドリフト(中央+24%)補正で選択上限を70に。
-  ※単勝10倍未満は"名目4-12番人気でも実は人気馬(織り込み済み)"なので除外
-  かつ 過去出走2戦以上(3戦目以上)。1-2戦目は見限り妙味が未成熟で除外 (decision 160)
+v2(血統フィルタ decision 182): score機構を撤廃し血統一本に。利益指標で再評価した結果。
+母集団: 全会場 × 芝 未勝利 × 3歳牝 × 単勝15-80倍 × 3走目以上(過去出走2戦以上)
+  × 父=ディープ系/サンデー系他/カナロア系 を全頭買い(score・人気フィルタは撤廃)。
+  in-sample(2010-25): 128点/年 ROI149% 後期+8,886円/年 +12/16年。フォワード検証中。
 使い方: python3 -m live.summer_notify [YYYYMMDD]  (env TZ=Asia/Tokyo 前提)
 """
 import sys, os, re, json, datetime
@@ -30,6 +28,8 @@ MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
 # ディープ系155%=+2, サンデー系他134%/カナロア系149%=+1, 他(米国系95%含む<100%)=0。除外なし。
 GOOD2 = {"ディープ系"}                  # +2
 GOOD1 = {"サンデー系他", "カナロア系"}   # +1 (米国系は最終形フィルタ下で95%=加点根拠消失のため除外 decision 167)
+# v2(血統フィルタ): 芝の対象父系統。score機構を撤廃し、この血統×15-80倍×3走目以上を全頭買い。
+SHIBA_BLOOD = GOOD2 | GOOD1            # {ディープ系, サンデー系他, カナロア系}
 
 
 def lin_bonus(lin):
@@ -118,37 +118,16 @@ def prev_run(horse_id, before_date):
     return rel, fin, sire, n_prev, pstat
 
 
-def axes(c):
-    rel = c["rel"]
-    lin = c.get("lin")
-    b = lin_bonus(lin)
-    return [("前走中団以降", rel is not None and rel > 0.33, f"4角{rel:.0%}" if rel is not None else "4角不明"),
-            ("前走6着以下", c["前着"] is not None and c["前着"] >= 6, f"前走{c['前着']}着" if c["前着"] is not None else (c.get("pstat") or "前走不明")),
-            ("馬体重420-470", c["体重"] is not None and 420 <= c["体重"] <= 470, f"{c['体重']}kg" if c["体重"] is not None else "体重不明"),
-            (f"妙味血統+{b}", b > 0, f"{lin or '血統不明'}(+{b})")]
-
-
-def reason(c):
-    lbl = {"前走中団以降": "前走で脚を余す", "前走6着以下": "前走負けて人気落ち",
-           "馬体重420-470": "好適馬体重"}
-    a = axes(c)
-    ok = [lbl[n] for n, hit, _ in a[:3] if hit]
-    lin, b = c.get("lin"), lin_bonus(c.get("lin"))
-    if b:
-        ok.append(f"{lin}(妙味血統+{b})")
-    return " / ".join(ok) if ok else "母集団該当のみ"
-
-
 def build_pick(race_id, feats, date_iso):
-    """feats: 朝(summer_schedule)が計算した不変特徴 {馬番: {rel,fin,lin,n_prev}}。
-    出馬表からは変動する 馬体重・オッズ・人気 のみ取得して合成する。"""
+    """v2(血統フィルタ): 3歳牝×芝未勝利×単勝15-80倍×3走目以上×父{ディープ/サンデー他/カナロア}を全頭買い。
+    feats: 朝(summer_schedule)が計算した不変特徴 {馬番: {lin,n_prev,...}}。無ければ直前に父系統を取得。
+    score機構は撤廃(2026-06: 利益指標で血統フィルタ一本に方針転換 decision 182)。"""
     s = parse_shutuba(race_id)
     if s["surface"] != "芝" or s["class"] != "未勝利":
         return None
-    wmap = get_weight(race_id)
     _, omap = live_odds(race_id)   # 最新の単勝オッズ・人気(AJAX=リロード相当)
     fmap = {f["umaban"]: f for f in (feats or [])}
-    cands = []
+    buys = []
     for h in s["horses"]:
         sa = h.get("性齢", "")
         if not (sa.startswith("牝") and sa.endswith("3")):
@@ -156,27 +135,23 @@ def build_pick(race_id, feats, date_iso):
         lo = omap.get(h["馬番"])
         pop = lo["pop"] if lo else h.get("人気")
         odds = lo["odds"] if lo else h.get("単勝オッズ")
-        if pop is None or odds is None or not (4 <= pop <= 12) or not (10 <= odds < 80):
+        if odds is None or not (15 <= odds < 80):   # 単勝15-80倍(人気は不問)
             continue
-        wt = wmap.get(h["馬番"])
         f = fmap.get(h["馬番"])
         if f is not None:   # 朝に計算済みの不変特徴を利用
-            rel, fin, lin, n_prev, pstat = f["rel"], f["fin"], f["lin"], f["n_prev"], f.get("pstat")
-        else:               # フォールバック: 未計算なら直前に取得
-            rel, fin, sire, n_prev, pstat = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
+            lin, n_prev = f["lin"], f["n_prev"]
+        else:               # フォールバック: 未計算なら直前に父系統取得
+            _, _, sire, n_prev, _ = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
             lin = lineage_of(sire)
-        if n_prev < 2:   # 1-2戦目(過去出走0-1)は見限り妙味が未成熟なため除外 (decision 160)
+        if n_prev < 2:           # 3走目以上(過去出走2戦以上)
             continue
-        sc = (int(rel is not None and rel > 0.33)
-              + int(fin is not None and fin >= 6) + int(wt is not None and 420 <= wt <= 470)
-              + lin_bonus(lin))
-        cands.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds,
-                      "rel": rel, "前着": fin, "体重": wt, "lin": lin, "pstat": pstat, "score": sc})
-    if not cands:
+        if lin not in SHIBA_BLOOD:   # 血統フィルタ
+            continue
+        buys.append({"馬番": h["馬番"], "馬名": h["馬名"], "人気": pop, "odds": odds, "lin": lin})
+    if not buys:
         return None
-    cands.sort(key=lambda x: (-x["score"], -x["odds"]))
-    return {"race_name": s["race_name"], "distance": s["distance"],
-            "honmei": cands[0], "others": cands[1:]}
+    buys.sort(key=lambda x: -x["odds"])
+    return {"race_name": s["race_name"], "distance": s["distance"], "buys": buys}
 
 
 def now_jst():
@@ -242,32 +217,19 @@ def main():
         if not p:
             r["picks"] = []
             continue
-        # score>=3 の該当馬を全部買う (cc-memory decision 156)
-        allc = [p["honmei"]] + p["others"]
-        buys = [c for c in allc if c["score"] >= MIN_SCORE]
-        r["picks"] = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "score": c["score"]} for c in buys]
+        # v2: 血統フィルタ該当を全頭買い(score撤廃 decision 182)
+        buys = p["buys"]
+        r["picks"] = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "lin": c["lin"]} for c in buys]
         head = (f"{hdr}\n"
                 f"🏇 *{r['venue']}{r['rno']}R* {p['race_name']} ({p['distance']}m)\n"
                 f"⏱ 発走 {r['post']} → *発走{lead_i}分前*")
-        if not buys:
-            print(f"{head}  → 買い目なし(最高score {allc[0]['score']})")
-            continue
         lines = [head,
                  "━━━━━━━━━━━━━━",
                  f"🎯 *買い目: 単勝 各¥{unit:,} (計¥{unit*len(buys):,})*"]
         for c in buys:
-            lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}*")
-        lines += [
-                 "━━━━━━━━━━━━━━",
-                 f"_オッズ・人気は発走{lead_i}分前時点（締切まで変動します）_",
-                 "▼内訳"]
-        for c in buys:
-            ax = " ".join(f"{'✅' if hit else '⬜'}{n}({v})" for n, hit, v in axes(c))
-            lines.append(f"・{c['馬番']}番 *{c['馬名']}* {c['人気']}人気 *{c['odds']}倍* (score {c['score']}/5)")
-            lines.append(f"   {ax} → {reason(c)}")
-        skipped = [c for c in allc if c["score"] < MIN_SCORE]
-        if skipped:
-            lines.append("_見送り(score<3): " + " , ".join(f"{c['馬番']}{c['馬名']}(s{c['score']})" for c in skipped) + "_")
+            lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}* ({c['人気']}人気 {c['odds']}倍 / 父系{c['lin']})")
+        lines += ["━━━━━━━━━━━━━━",
+                  f"_血統(ディープ/サンデー他/カナロア)×単勝15-80倍×3走目以上を全頭。オッズは発走{lead_i}分前時点(変動)_"]
         blocks.append("\n".join(lines))
     if blocks:
         DIV = "━━━━━━━━━━━━━━"

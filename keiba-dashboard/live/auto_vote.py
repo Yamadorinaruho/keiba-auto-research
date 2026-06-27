@@ -20,9 +20,8 @@ JST = datetime.timezone(datetime.timedelta(hours=9))
 BET_LEAD_MAX = 5.0    # 5分前から試行(これより早い=オッズ未確定なので待つ)
 BET_LEAD_MIN = 2.0    # 締切ガード: 2分前を切ったら投票しない(間に合わないリスク回避)
 
-# 1点額(円)。全戦略 ¥1000 で統一。
-# AUTOVOTE_FORCE_AMOUNT を設定すると全戦略をその額に上書き(緊急用)。
-STRAT_AMOUNT = {"shinba": 1000, "shiba": 1000, "dirt": 1000}
+# 1点額(円)は bankroll.daily_unit(=残高0.5%/100円単位)を使い、通知・収支・bankrollと一致させる。
+# AUTOVOTE_FORCE_AMOUNT を設定すると全点をその額に上書き(初回テスト/緊急用)。
 
 
 def _now():
@@ -76,8 +75,9 @@ def plan_bets(date, now=None, all_races=False):
         return []
     sched = json.load(open(sched_path(date)))
     betlog = load_betlog(date)
-    force = os.environ.get("AUTOVOTE_FORCE_AMOUNT")   # 設定時は全戦略をこの額に上書き
+    force = os.environ.get("AUTOVOTE_FORCE_AMOUNT")   # 設定時は全点をその額に上書き
     max_races = os.environ.get("AUTOVOTE_MAX_RACES")
+    unit = int(force) if force else bankroll.daily_unit(date_iso)   # 当日の1点額(通知・収支と同一)
     plan, used_races = [], set()
     for r in sched.get("races", []):
         picks = r.get("picks") or []
@@ -87,7 +87,7 @@ def plan_bets(date, now=None, all_races=False):
         if not all_races and not (BET_LEAD_MIN <= lead <= BET_LEAD_MAX):
             continue
         strat = r.get("strat")
-        amount = int(force) if force else STRAT_AMOUNT.get(strat, 100)   # 戦略別(新馬¥1000/芝ダ¥100)
+        amount = unit   # 全戦略・全点 当日の1点額で統一(残高0.5%)
         already = {x["umaban"] for x in betlog.get(r["race_id"], [])}
         for pk in picks:
             if pk["umaban"] in already:
@@ -95,7 +95,7 @@ def plan_bets(date, now=None, all_races=False):
             plan.append({"race_id": r["race_id"], "venue": r["venue"], "rno": r["rno"],
                          "post": r["post"], "strat": strat, "umaban": pk["umaban"],
                          "horse": pk.get("horse", ""), "amount": amount,
-                         "score": pk.get("score"), "lead": round(lead, 1)})
+                         "info": pk.get("lin") or pk.get("score"), "lead": round(lead, 1)})
             used_races.add(r["race_id"])
         if max_races and len(used_races) >= int(max_races):
             break
@@ -112,7 +112,7 @@ def format_plan(plan):
             cur = b["race_id"]
             lines.append(f"\n{b['post']} {b['venue']}{b['rno']}R [{b['strat']}] (発走{b['lead']}分前)")
         total += b["amount"]
-        lines.append(f"  単勝 {b['umaban']}番 {b['horse']} ¥{b['amount']:,} (score{b['score']})")
+        lines.append(f"  単勝 {b['umaban']}番 {b['horse']} ¥{b['amount']:,} ({b.get('info') or '-'})")
     lines.append(f"\n合計 {len(plan)}点 / ¥{total:,}")
     return "\n".join(lines)
 
