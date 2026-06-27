@@ -668,15 +668,6 @@
      "pstat": null
     },
     {
-     "umaban": 9,
-     "horse": "ミライハーモニー",
-     "rel": 0.06666666666666667,
-     "fin": 3,
-     "lin": "欧州系",
-     "n_prev": 16,
-     "pstat": null
-    },
-    {
      "umaban": 10,
      "horse": "ペルセポネ",
      "rel": 0.0625,
@@ -815,24 +806,6 @@
      "fin": 1,
      "lin": "米国系",
      "n_prev": 3,
-     "pstat": null
-    },
-    {
-     "umaban": 8,
-     "horse": "スターランウェイ",
-     "rel": 0.1875,
-     "fin": 3,
-     "lin": "米国系",
-     "n_prev": 6,
-     "pstat": null
-    },
-    {
-     "umaban": 11,
-     "horse": "フクチャンヒメ",
-     "rel": 0.5625,
-     "fin": 11,
-     "lin": "米国系",
-     "n_prev": 6,
      "pstat": null
     },
     {
