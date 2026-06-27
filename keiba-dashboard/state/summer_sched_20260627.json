@@ -915,19 +915,13 @@
     {
      "umaban": 2,
      "horse": "モーブプリエール",
-     "odds_pre": 27.4,
+     "odds_pre": 33.7,
      "score": 4
-    },
-    {
-     "umaban": 11,
-     "horse": "レイナデルアイレ",
-     "odds_pre": 73.7,
-     "score": 3
     },
     {
      "umaban": 4,
      "horse": "グレイスルーラー",
-     "odds_pre": 38.0,
+     "odds_pre": 43.8,
      "score": 3
     }
    ]
@@ -997,14 +991,7 @@
      "pstat": null
     }
    ],
-   "picks": [
-    {
-     "umaban": 4,
-     "horse": "ミサビスケッツ",
-     "odds_pre": 12.3,
-     "score": 3
-    }
-   ]
+   "picks": []
   },
   {
    "race_id": "202603020108",
