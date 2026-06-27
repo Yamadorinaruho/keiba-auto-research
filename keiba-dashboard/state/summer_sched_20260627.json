@@ -991,7 +991,14 @@
      "pstat": null
     }
    ],
-   "picks": []
+   "picks": [
+    {
+     "umaban": 6,
+     "horse": "スパークルジョイ",
+     "odds_pre": 10.5,
+     "score": 4
+    }
+   ]
   },
   {
    "race_id": "202603020108",
