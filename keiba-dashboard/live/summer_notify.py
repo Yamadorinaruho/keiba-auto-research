@@ -55,6 +55,21 @@ def get_weight(race_id):
     return out
 
 
+def live_post(race_id):
+    """ライブの発走時刻 HH:MM を返す(netkeibaは遅延を反映)。失敗時 None。"""
+    try:
+        html = fetch(f"https://race.netkeiba.com/race/shutuba.html?race_id={race_id}",
+                     cache_key=f"shutuba_{race_id}.html", force=True)
+        rd = BeautifulSoup(html, "html.parser").select_one(".RaceData01")
+        if rd:
+            m = re.search(r"(\d{1,2}):(\d{2})発走", rd.get_text(" ", strip=True))
+            if m:
+                return f"{int(m.group(1)):02d}:{m.group(2)}"
+    except Exception:
+        pass
+    return None
+
+
 _PSTAT = {"除": "前走除外", "中": "前走中止", "取": "前走取消", "失": "前走失格", "降": "前走降着"}
 
 
@@ -184,6 +199,14 @@ def main():
         hh, mm = map(int, r["post"].split(":"))
         post_dt = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
         lead = (post_dt - now).total_seconds() / 60.0  # 発走まで何分
+        # 発走が近いレースはライブ発走時刻を再取得して遅延を反映(締切前に正しい3分前で投票するため)
+        if 0 < lead <= 40:
+            lp = live_post(r["race_id"])
+            if lp and lp != r["post"]:
+                r["post"] = lp; changed = True
+                hh, mm = map(int, lp.split(":"))
+                post_dt = now.replace(hour=hh, minute=mm, second=0, microsecond=0)
+                lead = (post_dt - now).total_seconds() / 60.0
         # 発走LEAD_MAX分以内なら毎回通知(*/3が回るたび=3分ごと、dedupなし)
         if not (0 < lead <= LEAD_MAX):
             continue

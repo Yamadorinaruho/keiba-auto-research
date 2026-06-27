@@ -7,3 +7,10 @@ results.tsv
 progress.png
 *.egg-info/
 uv.lock
+
+# 認証情報・秘密(絶対コミットしない)
+.env
+.env.*
+*.env
+keiba-dashboard/state/ipat_shots/
+keiba-dashboard/state/bet_log_*.json
