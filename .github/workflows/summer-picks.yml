@@ -87,9 +87,10 @@ jobs:
           cd keiba-dashboard
           # 各globは該当ファイルが無い回がある(朝はodds無し等)。bash -e で落とさないよう個別add+|| true。
           # state全体(netkeiba_cache等)はaddしない。対象jsonのみ。
-          for pat in summer_sched_ odds_races_ odds_log_; do
+          for pat in summer_sched_ odds_races_; do
             git add state/${pat}*.json 2>/dev/null || true
           done
+          git add state/odds_log_*.tsv 2>/dev/null || true   # オッズ記録は追記TSV(マージ安全)
           git add state/bankroll.json 2>/dev/null || true
           if [ -n "$(git diff --cached --name-only)" ]; then
             git config user.name "github-actions"
