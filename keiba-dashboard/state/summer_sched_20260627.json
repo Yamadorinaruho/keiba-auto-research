@@ -915,19 +915,19 @@
     {
      "umaban": 2,
      "horse": "モーブプリエール",
-     "odds_pre": 24.0,
+     "odds_pre": 27.4,
      "score": 4
     },
     {
      "umaban": 11,
      "horse": "レイナデルアイレ",
-     "odds_pre": 66.3,
+     "odds_pre": 73.7,
      "score": 3
     },
     {
      "umaban": 4,
      "horse": "グレイスルーラー",
-     "odds_pre": 34.4,
+     "odds_pre": 38.0,
      "score": 3
     }
    ]
@@ -1001,7 +1001,7 @@
     {
      "umaban": 4,
      "horse": "ミサビスケッツ",
-     "odds_pre": 11.7,
+     "odds_pre": 12.3,
      "score": 3
     }
    ]
