@@ -1117,6 +1117,26 @@
      "n_prev": 19,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 12,
+     "horse": "タッカージーティー",
+     "odds_pre": 17.5,
+     "score": 4
+    },
+    {
+     "umaban": 16,
+     "horse": "シアター",
+     "odds_pre": 33.5,
+     "score": 3
+    },
+    {
+     "umaban": 2,
+     "horse": "カワキタマナレア",
+     "odds_pre": 14.0,
+     "score": 3
+    }
    ]
   }
  ]
