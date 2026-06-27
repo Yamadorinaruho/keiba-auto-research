@@ -995,8 +995,14 @@
     {
      "umaban": 6,
      "horse": "スパークルジョイ",
-     "odds_pre": 10.5,
+     "odds_pre": 13.8,
      "score": 4
+    },
+    {
+     "umaban": 4,
+     "horse": "ミサビスケッツ",
+     "odds_pre": 12.3,
+     "score": 3
     }
    ]
   },
