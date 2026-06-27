@@ -598,6 +598,32 @@
      "n_prev": 7,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 16,
+     "horse": "ダンツアラーム",
+     "odds_pre": 44.1,
+     "score": 4
+    },
+    {
+     "umaban": 10,
+     "horse": "アルケミラモリス",
+     "odds_pre": 30.2,
+     "score": 4
+    },
+    {
+     "umaban": 1,
+     "horse": "インフィオラータ",
+     "odds_pre": 12.0,
+     "score": 4
+    },
+    {
+     "umaban": 7,
+     "horse": "ゲフィオン",
+     "odds_pre": 23.0,
+     "score": 3
+    }
    ]
   },
   {
