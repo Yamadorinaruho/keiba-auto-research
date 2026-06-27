@@ -274,6 +274,20 @@
      "n_prev": 8,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 4,
+     "horse": "ロングフルスペック",
+     "odds_pre": 34.9,
+     "score": 4
+    },
+    {
+     "umaban": 6,
+     "horse": "クインズスズラン",
+     "odds_pre": 11.0,
+     "score": 3
+    }
    ]
   },
   {
