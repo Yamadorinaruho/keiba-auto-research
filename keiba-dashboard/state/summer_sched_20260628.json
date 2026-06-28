@@ -423,15 +423,9 @@
    ],
    "picks": [
     {
-     "umaban": 2,
-     "horse": "アジーザム",
-     "odds_pre": 76.7,
-     "lin": "米国系"
-    },
-    {
      "umaban": 11,
      "horse": "コシタンタン",
-     "odds_pre": 40.7,
+     "odds_pre": 44.0,
      "lin": "米国系"
     }
    ]
@@ -505,7 +499,7 @@
     {
      "umaban": 7,
      "horse": "ヴェネラブル",
-     "odds_pre": 67.9,
+     "odds_pre": 73.5,
      "lin": "サンデー系他"
     }
    ]
