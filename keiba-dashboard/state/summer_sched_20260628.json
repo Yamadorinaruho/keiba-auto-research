@@ -942,7 +942,14 @@
      "pstat": null
     }
    ],
-   "picks": []
+   "picks": [
+    {
+     "umaban": 5,
+     "horse": "クアロアランチ",
+     "odds_pre": 10.0,
+     "lin": "米国系"
+    }
+   ]
   }
  ]
 }
