@@ -579,25 +579,25 @@
     {
      "umaban": 3,
      "horse": "ラッキースパークル",
-     "odds_pre": 3.0,
+     "odds_pre": 2.8,
      "sire": "エピファネイア"
     },
     {
      "umaban": 4,
      "horse": "ビップヴィーナス",
-     "odds_pre": 12.9,
+     "odds_pre": 14.6,
      "sire": "エピファネイア"
     },
     {
      "umaban": 7,
      "horse": "センターアイランド",
-     "odds_pre": 5.2,
+     "odds_pre": 5.5,
      "sire": "エフフォーリア"
     },
     {
      "umaban": 9,
      "horse": "マーゴットパラディ",
-     "odds_pre": 16.9,
+     "odds_pre": 18.3,
      "sire": "エフフォーリア"
     }
    ]
@@ -653,7 +653,7 @@
     {
      "umaban": 5,
      "horse": "ビップジョワ",
-     "odds_pre": 67.0,
+     "odds_pre": 68.2,
      "lin": "ディープ系"
     }
    ]
