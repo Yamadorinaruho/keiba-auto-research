@@ -176,45 +176,45 @@
    ],
    "picks": [
     {
-     "umaban": 16,
-     "horse": "リーガルスプレンダ",
-     "odds_pre": 52.9,
-     "lin": "ディープ系"
-    },
-    {
      "umaban": 10,
      "horse": "サンシャインビーチ",
-     "odds_pre": 51.9,
+     "odds_pre": 53.9,
      "lin": "サンデー系他"
+    },
+    {
+     "umaban": 16,
+     "horse": "リーガルスプレンダ",
+     "odds_pre": 53.4,
+     "lin": "ディープ系"
     },
     {
      "umaban": 12,
      "horse": "ヴィーラー",
-     "odds_pre": 49.2,
+     "odds_pre": 48.1,
      "lin": "ディープ系"
     },
     {
      "umaban": 3,
      "horse": "ランスオブラヴ",
-     "odds_pre": 37.2,
+     "odds_pre": 38.9,
      "lin": "ディープ系"
     },
     {
      "umaban": 7,
      "horse": "ディオレガーロ",
-     "odds_pre": 27.0,
+     "odds_pre": 27.6,
      "lin": "カナロア系"
     },
     {
      "umaban": 11,
      "horse": "エンブルーシャ",
-     "odds_pre": 25.8,
+     "odds_pre": 27.6,
      "lin": "サンデー系他"
     },
     {
      "umaban": 8,
      "horse": "セレブトーチ",
-     "odds_pre": 16.9,
+     "odds_pre": 16.7,
      "lin": "カナロア系"
     }
    ]
