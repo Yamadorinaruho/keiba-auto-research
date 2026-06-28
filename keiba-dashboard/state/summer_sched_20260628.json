@@ -331,27 +331,27 @@
    ],
    "picks": [
     {
-     "umaban": 6,
-     "horse": "グリミスティ",
-     "odds_pre": 53.9,
-     "lin": "ディープ系"
-    },
-    {
      "umaban": 14,
      "horse": "ダノンプレリュード",
-     "odds_pre": 45.7,
+     "odds_pre": 61.4,
      "lin": "サンデー系他"
+    },
+    {
+     "umaban": 6,
+     "horse": "グリミスティ",
+     "odds_pre": 56.0,
+     "lin": "ディープ系"
     },
     {
      "umaban": 16,
      "horse": "シャロン",
-     "odds_pre": 44.9,
+     "odds_pre": 55.2,
      "lin": "ディープ系"
     },
     {
      "umaban": 12,
      "horse": "アリュウ",
-     "odds_pre": 34.4,
+     "odds_pre": 30.2,
      "lin": "サンデー系他"
     }
    ]
