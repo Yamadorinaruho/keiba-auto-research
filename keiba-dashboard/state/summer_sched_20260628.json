@@ -579,13 +579,13 @@
     {
      "umaban": 3,
      "horse": "ラッキースパークル",
-     "odds_pre": 2.9,
+     "odds_pre": 3.0,
      "sire": "エピファネイア"
     },
     {
      "umaban": 4,
      "horse": "ビップヴィーナス",
-     "odds_pre": 12.0,
+     "odds_pre": 12.9,
      "sire": "エピファネイア"
     },
     {
@@ -597,7 +597,7 @@
     {
      "umaban": 9,
      "horse": "マーゴットパラディ",
-     "odds_pre": 17.0,
+     "odds_pre": 16.9,
      "sire": "エフフォーリア"
     }
    ]
@@ -648,13 +648,21 @@
      "n_prev": 1,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 5,
+     "horse": "ビップジョワ",
+     "odds_pre": 67.0,
+     "lin": "ディープ系"
+    }
    ]
   },
   {
    "race_id": "202603020206",
    "venue": "福島",
    "rno": 6,
-   "post": "13:00",
+   "post": "13:01",
    "race_name": "3歳未勝利",
    "distance": 1150,
    "notified": false,
