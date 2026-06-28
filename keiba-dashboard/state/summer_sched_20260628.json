@@ -328,6 +328,38 @@
      "n_prev": 3,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 3,
+     "horse": "エリカアズーラ",
+     "odds_pre": 79.2,
+     "lin": "カナロア系"
+    },
+    {
+     "umaban": 14,
+     "horse": "ダノンプレリュード",
+     "odds_pre": 45.0,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 6,
+     "horse": "グリミスティ",
+     "odds_pre": 43.2,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 16,
+     "horse": "シャロン",
+     "odds_pre": 37.6,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 12,
+     "horse": "アリュウ",
+     "odds_pre": 29.7,
+     "lin": "サンデー系他"
+    }
    ]
   },
   {
