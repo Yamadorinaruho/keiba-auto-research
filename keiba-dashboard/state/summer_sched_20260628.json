@@ -495,7 +495,14 @@
      "pstat": null
     }
    ],
-   "picks": []
+   "picks": [
+    {
+     "umaban": 11,
+     "horse": "スイートポメロ",
+     "odds_pre": 15.9,
+     "lin": "ディープ系"
+    }
+   ]
   },
   {
    "race_id": "202602010604",
