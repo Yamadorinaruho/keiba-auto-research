@@ -585,19 +585,19 @@
     {
      "umaban": 4,
      "horse": "ビップヴィーナス",
-     "odds_pre": 14.6,
+     "odds_pre": 16.8,
      "sire": "エピファネイア"
     },
     {
      "umaban": 7,
      "horse": "センターアイランド",
-     "odds_pre": 5.5,
+     "odds_pre": 5.3,
      "sire": "エフフォーリア"
     },
     {
      "umaban": 9,
      "horse": "マーゴットパラディ",
-     "odds_pre": 18.3,
+     "odds_pre": 20.2,
      "sire": "エフフォーリア"
     }
    ]
@@ -653,7 +653,7 @@
     {
      "umaban": 5,
      "horse": "ビップジョワ",
-     "odds_pre": 68.2,
+     "odds_pre": 72.4,
      "lin": "ディープ系"
     }
    ]
