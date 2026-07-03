@@ -1,0 +1,871 @@
+{
+ "date": "2026-07-04",
+ "races": [
+  {
+   "race_id": "202602010702",
+   "venue": "函館",
+   "rno": 2,
+   "post": "10:20",
+   "race_name": "3歳未勝利",
+   "distance": 1800,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 1,
+     "horse": "ヒメヒオウギ",
+     "rel": 0.3333333333333333,
+     "fin": 4,
+     "lin": "ディープ系",
+     "n_prev": 8,
+     "pstat": null
+    },
+    {
+     "umaban": 2,
+     "horse": "デイズインザサン",
+     "rel": 0.5,
+     "fin": 5,
+     "lin": "ディープ系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 6,
+     "horse": "アウェイクネス",
+     "rel": 0.5882352941176471,
+     "fin": 12,
+     "lin": "欧州系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 7,
+     "horse": "スワトウ",
+     "rel": 0.8125,
+     "fin": 7,
+     "lin": "ディープ系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 9,
+     "horse": "ヴァールザーゲン",
+     "rel": 1.0,
+     "fin": 15,
+     "lin": "ディープ系",
+     "n_prev": 6,
+     "pstat": null
+    },
+    {
+     "umaban": 10,
+     "horse": "ボーントゥラブユー",
+     "rel": 0.2,
+     "fin": 5,
+     "lin": "ディープ系",
+     "n_prev": 7,
+     "pstat": null
+    },
+    {
+     "umaban": 11,
+     "horse": "タイセイルビー",
+     "rel": 0.6428571428571429,
+     "fin": 6,
+     "lin": "ディープ系",
+     "n_prev": 10,
+     "pstat": null
+    },
+    {
+     "umaban": 12,
+     "horse": "メイショウローゼ",
+     "rel": 0.5,
+     "fin": 2,
+     "lin": "ディープ系",
+     "n_prev": 7,
+     "pstat": null
+    },
+    {
+     "umaban": 14,
+     "horse": "ワダツミ",
+     "rel": 0.375,
+     "fin": 5,
+     "lin": "米国系",
+     "n_prev": 4,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202610020302",
+   "venue": "小倉",
+   "rno": 2,
+   "post": "10:30",
+   "race_name": "3歳未勝利",
+   "distance": 1200,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 1,
+     "horse": "リフルフォース",
+     "rel": 0.4375,
+     "fin": 16,
+     "lin": "カナロア系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 2,
+     "horse": "ロングジーニアス",
+     "rel": 0.5555555555555556,
+     "fin": 9,
+     "lin": null,
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 3,
+     "horse": "メドウセージ",
+     "rel": 1.0,
+     "fin": 10,
+     "lin": "ディープ系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 8,
+     "horse": "ナデシコザクラ",
+     "rel": 0.375,
+     "fin": 15,
+     "lin": "米国系",
+     "n_prev": 6,
+     "pstat": null
+    },
+    {
+     "umaban": 9,
+     "horse": "マルモリキャスター",
+     "rel": 0.47058823529411764,
+     "fin": 7,
+     "lin": "サクラバクシンオー系",
+     "n_prev": 9,
+     "pstat": null
+    },
+    {
+     "umaban": 11,
+     "horse": "デュードロップ",
+     "rel": 0.06666666666666667,
+     "fin": 14,
+     "lin": "キンカメ系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 12,
+     "horse": "シャンデリュイーズ",
+     "rel": 0.4117647058823529,
+     "fin": 12,
+     "lin": "ディープ系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 13,
+     "horse": "ルージュルガーノ",
+     "rel": 0.06666666666666667,
+     "fin": 13,
+     "lin": "サンデー系他",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 15,
+     "horse": "ランスオブラヴ",
+     "rel": 0.16666666666666666,
+     "fin": 3,
+     "lin": "ディープ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 16,
+     "horse": "パープルウインド",
+     "rel": 0.3333333333333333,
+     "fin": 9,
+     "lin": "ディープ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 17,
+     "horse": "マリノムーンリーフ",
+     "rel": 0.0625,
+     "fin": 13,
+     "lin": "米国系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 18,
+     "horse": "アンコ",
+     "rel": 0.5625,
+     "fin": 7,
+     "lin": null,
+     "n_prev": 3,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202603020302",
+   "venue": "福島",
+   "rno": 2,
+   "post": "10:40",
+   "race_name": "3歳未勝利",
+   "distance": 2600,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 6,
+     "horse": "ドナディクオーレ",
+     "rel": 0.2,
+     "fin": 3,
+     "lin": "欧州系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 7,
+     "horse": "クイーンズレイン",
+     "rel": 0.8333333333333334,
+     "fin": 4,
+     "lin": "ロベルト系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 9,
+     "horse": "レディホークダイヤ",
+     "rel": 0.375,
+     "fin": 12,
+     "lin": "ディープ系",
+     "n_prev": 3,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202610020303",
+   "venue": "小倉",
+   "rno": 3,
+   "post": "11:00",
+   "race_name": "3歳未勝利",
+   "distance": 2600,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 2,
+     "horse": "ベルドゥニュイ",
+     "rel": 0.4444444444444444,
+     "fin": 12,
+     "lin": "ディープ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 4,
+     "horse": "スピーチバルーン",
+     "rel": 0.8888888888888888,
+     "fin": 9,
+     "lin": "ディープ系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 10,
+     "horse": "メイショウシュハリ",
+     "rel": 0.7333333333333333,
+     "fin": 14,
+     "lin": "キンカメ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 12,
+     "horse": "ブライトココナッツ",
+     "rel": 0.9333333333333333,
+     "fin": 10,
+     "lin": "サンデー系他",
+     "n_prev": 2,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202602010704",
+   "venue": "函館",
+   "rno": 4,
+   "post": "11:20",
+   "race_name": "3歳未勝利",
+   "distance": 1200,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 2,
+     "horse": "ルージュフィーリア",
+     "rel": null,
+     "fin": null,
+     "lin": "ディープ系",
+     "n_prev": 0,
+     "pstat": null
+    },
+    {
+     "umaban": 3,
+     "horse": "グローリアスダンス",
+     "rel": 0.2222222222222222,
+     "fin": 13,
+     "lin": "ディープ系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 5,
+     "horse": "ディサイドオンミー",
+     "rel": 0.3125,
+     "fin": 8,
+     "lin": null,
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 6,
+     "horse": "フクノアンタレス",
+     "rel": 0.6875,
+     "fin": 14,
+     "lin": "米国系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 8,
+     "horse": "ソチミルコ",
+     "rel": 0.5,
+     "fin": 15,
+     "lin": "キンカメ系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 10,
+     "horse": "チェリーブルーム",
+     "rel": 0.0625,
+     "fin": 8,
+     "lin": "米国系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 12,
+     "horse": "オリヒメボシ",
+     "rel": 1.0,
+     "fin": 8,
+     "lin": "米国系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 15,
+     "horse": "スッサンエア",
+     "rel": 0.375,
+     "fin": 3,
+     "lin": "サンデー系他",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 16,
+     "horse": "ヤジロベエバランス",
+     "rel": 0.7777777777777778,
+     "fin": 7,
+     "lin": "ディープ系",
+     "n_prev": 3,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202603020304",
+   "venue": "福島",
+   "rno": 4,
+   "post": "11:40",
+   "race_name": "3歳未勝利",
+   "distance": 1200,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 1,
+     "horse": "タイセイスタナー",
+     "rel": 0.2,
+     "fin": 11,
+     "lin": "ディープ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 2,
+     "horse": "ミスティユニバンス",
+     "rel": 0.3333333333333333,
+     "fin": 11,
+     "lin": "ディープ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 3,
+     "horse": "ロジスカヤ",
+     "rel": 0.4375,
+     "fin": 7,
+     "lin": "ディープ系",
+     "n_prev": 6,
+     "pstat": null
+    },
+    {
+     "umaban": 4,
+     "horse": "アーリマックス",
+     "rel": 0.8125,
+     "fin": 5,
+     "lin": "欧州系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 5,
+     "horse": "フレンドリーエール",
+     "rel": 0.75,
+     "fin": 12,
+     "lin": "サンデー系他",
+     "n_prev": 6,
+     "pstat": null
+    },
+    {
+     "umaban": 6,
+     "horse": "カラーオブサクセス",
+     "rel": 0.625,
+     "fin": 11,
+     "lin": "サンデー系他",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 7,
+     "horse": "ロッタリーランド",
+     "rel": 0.75,
+     "fin": 15,
+     "lin": "ロベルト系",
+     "n_prev": 1,
+     "pstat": null
+    },
+    {
+     "umaban": 8,
+     "horse": "ナディア",
+     "rel": 0.0625,
+     "fin": 8,
+     "lin": null,
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 9,
+     "horse": "グレイシエーション",
+     "rel": 0.125,
+     "fin": 2,
+     "lin": "ロベルト系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 10,
+     "horse": "ハーティーチアーズ",
+     "rel": null,
+     "fin": null,
+     "lin": "米国系",
+     "n_prev": 0,
+     "pstat": null
+    },
+    {
+     "umaban": 11,
+     "horse": "トゥレイス",
+     "rel": 1.0,
+     "fin": 16,
+     "lin": "米国系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 12,
+     "horse": "ラウンドヒル",
+     "rel": 0.125,
+     "fin": 9,
+     "lin": "米国系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 13,
+     "horse": "アルファリラエ",
+     "rel": 0.625,
+     "fin": 14,
+     "lin": "カナロア系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 14,
+     "horse": "ホウオウミステリー",
+     "rel": 0.8125,
+     "fin": 10,
+     "lin": "米国系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 15,
+     "horse": "シエラモレーナ",
+     "rel": 0.6666666666666666,
+     "fin": 16,
+     "lin": "サクラバクシンオー系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 16,
+     "horse": "リーデレクオーレ",
+     "rel": 0.058823529411764705,
+     "fin": 2,
+     "lin": "ディープ系",
+     "n_prev": 7,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202610020305",
+   "venue": "小倉",
+   "rno": 5,
+   "post": "12:20",
+   "race_name": "2歳新馬",
+   "distance": 1200,
+   "notified": false,
+   "strat": "shinba",
+   "cands": [
+    {
+     "umaban": 2,
+     "horse": "プリンキピッサ",
+     "sire": "エフフォーリア"
+    }
+   ]
+  },
+  {
+   "race_id": "202603020305",
+   "venue": "福島",
+   "rno": 5,
+   "post": "12:30",
+   "race_name": "2歳新馬",
+   "distance": 1800,
+   "notified": false,
+   "strat": "shinba",
+   "cands": [
+    {
+     "umaban": 1,
+     "horse": "スタースポット",
+     "sire": "エフフォーリア"
+    },
+    {
+     "umaban": 7,
+     "horse": "フェリスセンダ",
+     "sire": "エフフォーリア"
+    },
+    {
+     "umaban": 14,
+     "horse": "ロードムーブオン",
+     "sire": "エフフォーリア"
+    }
+   ]
+  },
+  {
+   "race_id": "202610020307",
+   "venue": "小倉",
+   "rno": 7,
+   "post": "13:20",
+   "race_name": "3歳未勝利",
+   "distance": 1800,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 3,
+     "horse": "ステラネージュ",
+     "rel": 0.7222222222222222,
+     "fin": 10,
+     "lin": "カナロア系",
+     "n_prev": 1,
+     "pstat": null
+    },
+    {
+     "umaban": 7,
+     "horse": "フェブリノ",
+     "rel": 0.1111111111111111,
+     "fin": 3,
+     "lin": "欧州系",
+     "n_prev": 10,
+     "pstat": null
+    },
+    {
+     "umaban": 8,
+     "horse": "ワルツプリンセス",
+     "rel": 1.0,
+     "fin": 16,
+     "lin": "欧州系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 15,
+     "horse": "プリティウーマン",
+     "rel": 0.14285714285714285,
+     "fin": 9,
+     "lin": "ディープ系",
+     "n_prev": 2,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202603020307",
+   "venue": "福島",
+   "rno": 7,
+   "post": "13:30",
+   "race_name": "3歳未勝利",
+   "distance": 2000,
+   "notified": false,
+   "strat": "shiba",
+   "cands": [
+    {
+     "umaban": 1,
+     "horse": "ジーナグレイス",
+     "rel": 0.9444444444444444,
+     "fin": 15,
+     "lin": "キンカメ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 2,
+     "horse": "ダイヤモンドパレス",
+     "rel": 0.4375,
+     "fin": 4,
+     "lin": "ディープ系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 3,
+     "horse": "フロンテアムーン",
+     "rel": 0.4375,
+     "fin": 7,
+     "lin": "ディープ系",
+     "n_prev": 4,
+     "pstat": null
+    },
+    {
+     "umaban": 4,
+     "horse": "ミセスジョーンズ",
+     "rel": 1.0,
+     "fin": 15,
+     "lin": "ディープ系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 5,
+     "horse": "アズサ",
+     "rel": 1.0,
+     "fin": 18,
+     "lin": "欧州系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 6,
+     "horse": "アールグレイ",
+     "rel": 0.0625,
+     "fin": 3,
+     "lin": "サンデー系他",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 7,
+     "horse": "フレキシブル",
+     "rel": 0.2222222222222222,
+     "fin": 3,
+     "lin": "ディープ系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 8,
+     "horse": "ギャニミード",
+     "rel": 0.625,
+     "fin": 12,
+     "lin": "米国系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 9,
+     "horse": "アルティマローネ",
+     "rel": 0.875,
+     "fin": 8,
+     "lin": "米国系",
+     "n_prev": 2,
+     "pstat": null
+    },
+    {
+     "umaban": 10,
+     "horse": "ホウオウライラック",
+     "rel": 0.5625,
+     "fin": 6,
+     "lin": "キンカメ系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 11,
+     "horse": "アドマイヤフク",
+     "rel": 0.8333333333333334,
+     "fin": 12,
+     "lin": "サンデー系他",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 12,
+     "horse": "ノーブルスアーク",
+     "rel": 0.9230769230769231,
+     "fin": 11,
+     "lin": "ディープ系",
+     "n_prev": 6,
+     "pstat": null
+    },
+    {
+     "umaban": 13,
+     "horse": "アンヴデット",
+     "rel": 0.3333333333333333,
+     "fin": 9,
+     "lin": "ディープ系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 14,
+     "horse": "ピースフルマインド",
+     "rel": 0.5333333333333333,
+     "fin": 6,
+     "lin": "キンカメ系",
+     "n_prev": 3,
+     "pstat": null
+    },
+    {
+     "umaban": 15,
+     "horse": "キタノアヤカ",
+     "rel": 1.0,
+     "fin": 8,
+     "lin": "欧州系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 16,
+     "horse": "スターリットフレア",
+     "rel": 1.0,
+     "fin": 18,
+     "lin": "ディープ系",
+     "n_prev": 1,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202610020308",
+   "venue": "小倉",
+   "rno": 8,
+   "post": "13:50",
+   "race_name": "3歳以上1勝クラス",
+   "distance": 1000,
+   "notified": false,
+   "strat": "dirt",
+   "cands": [
+    {
+     "umaban": 3,
+     "horse": "エルル",
+     "rel": 0.1,
+     "fin": 1,
+     "lin": null,
+     "n_prev": 1,
+     "pstat": null
+    },
+    {
+     "umaban": 4,
+     "horse": "ベラジオリン",
+     "rel": 0.1875,
+     "fin": 7,
+     "lin": "米国系",
+     "n_prev": 6,
+     "pstat": null
+    },
+    {
+     "umaban": 9,
+     "horse": "ミヤフロント",
+     "rel": 0.375,
+     "fin": 4,
+     "lin": "欧州系",
+     "n_prev": 5,
+     "pstat": null
+    },
+    {
+     "umaban": 13,
+     "horse": "ミヤラティーニ",
+     "rel": 0.6875,
+     "fin": 10,
+     "lin": "ロベルト系",
+     "n_prev": 5,
+     "pstat": null
+    }
+   ]
+  },
+  {
+   "race_id": "202610020310",
+   "venue": "小倉",
+   "rno": 10,
+   "post": "14:55",
+   "race_name": "雲仙特別",
+   "distance": 1000,
+   "notified": false,
+   "strat": "dirt",
+   "cands": [
+    {
+     "umaban": 6,
+     "horse": "ローズカリス",
+     "rel": 1.0,
+     "fin": 10,
+     "lin": "米国系",
+     "n_prev": 8,
+     "pstat": null
+    }
+   ]
+  }
+ ]
+}
