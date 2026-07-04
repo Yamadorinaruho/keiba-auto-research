@@ -95,27 +95,21 @@
    ],
    "picks": [
     {
-     "umaban": 11,
-     "horse": "タイセイルビー",
-     "odds_pre": 72.4,
-     "lin": "ディープ系"
-    },
-    {
-     "umaban": 2,
-     "horse": "デイズインザサン",
-     "odds_pre": 67.0,
-     "lin": "ディープ系"
-    },
-    {
      "umaban": 9,
      "horse": "ヴァールザーゲン",
-     "odds_pre": 61.6,
+     "odds_pre": 55.0,
      "lin": "ディープ系"
     },
     {
      "umaban": 7,
      "horse": "スワトウ",
-     "odds_pre": 46.2,
+     "odds_pre": 54.9,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 10,
+     "horse": "ボーントゥラブユー",
+     "odds_pre": 15.8,
      "lin": "ディープ系"
     }
    ]
@@ -243,20 +237,14 @@
     {
      "umaban": 16,
      "horse": "パープルウインド",
-     "odds_pre": 73.9,
+     "odds_pre": 75.2,
      "lin": "ディープ系"
     },
     {
      "umaban": 3,
      "horse": "メドウセージ",
-     "odds_pre": 34.9,
+     "odds_pre": 37.4,
      "lin": "ディープ系"
-    },
-    {
-     "umaban": 1,
-     "horse": "リフルフォース",
-     "odds_pre": 15.1,
-     "lin": "カナロア系"
     }
    ]
   },
