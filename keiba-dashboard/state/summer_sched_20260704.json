@@ -750,7 +750,7 @@
     {
      "umaban": 15,
      "horse": "プリティウーマン",
-     "odds_pre": 49.5,
+     "odds_pre": 57.2,
      "lin": "ディープ系"
     }
    ]
@@ -914,19 +914,25 @@
     {
      "umaban": 11,
      "horse": "アドマイヤフク",
-     "odds_pre": 51.8,
+     "odds_pre": 52.9,
      "lin": "サンデー系他"
     },
     {
      "umaban": 3,
      "horse": "フロンテアムーン",
-     "odds_pre": 35.6,
+     "odds_pre": 37.2,
      "lin": "ディープ系"
     },
     {
      "umaban": 4,
      "horse": "ミセスジョーンズ",
-     "odds_pre": 33.1,
+     "odds_pre": 34.1,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 13,
+     "horse": "アンヴデット",
+     "odds_pre": 15.0,
      "lin": "ディープ系"
     }
    ]
