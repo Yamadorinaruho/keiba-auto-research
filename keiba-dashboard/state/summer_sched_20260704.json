@@ -605,6 +605,32 @@
      "n_prev": 7,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 13,
+     "horse": "アルファリラエ",
+     "odds_pre": 65.2,
+     "lin": "カナロア系"
+    },
+    {
+     "umaban": 5,
+     "horse": "フレンドリーエール",
+     "odds_pre": 51.8,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 2,
+     "horse": "ミスティユニバンス",
+     "odds_pre": 19.3,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 6,
+     "horse": "カラーオブサクセス",
+     "odds_pre": 17.4,
+     "lin": "サンデー系他"
+    }
    ]
   },
   {
