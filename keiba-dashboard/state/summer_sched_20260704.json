@@ -610,26 +610,32 @@
     {
      "umaban": 13,
      "horse": "アルファリラエ",
-     "odds_pre": 65.2,
+     "odds_pre": 65.1,
      "lin": "カナロア系"
     },
     {
      "umaban": 5,
      "horse": "フレンドリーエール",
-     "odds_pre": 51.8,
+     "odds_pre": 54.0,
      "lin": "サンデー系他"
     },
     {
      "umaban": 2,
      "horse": "ミスティユニバンス",
-     "odds_pre": 19.3,
+     "odds_pre": 19.6,
      "lin": "ディープ系"
     },
     {
      "umaban": 6,
      "horse": "カラーオブサクセス",
-     "odds_pre": 17.4,
+     "odds_pre": 17.8,
      "lin": "サンデー系他"
+    },
+    {
+     "umaban": 3,
+     "horse": "ロジスカヤ",
+     "odds_pre": 15.0,
+     "lin": "ディープ系"
     }
    ]
   },
