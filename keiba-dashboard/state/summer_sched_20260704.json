@@ -237,7 +237,7 @@
     {
      "umaban": 3,
      "horse": "メドウセージ",
-     "odds_pre": 41.9,
+     "odds_pre": 44.9,
      "lin": "ディープ系"
     }
    ]
@@ -278,6 +278,14 @@
      "lin": "ディープ系",
      "n_prev": 3,
      "pstat": null
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 9,
+     "horse": "レディホークダイヤ",
+     "odds_pre": 39.4,
+     "lin": "ディープ系"
     }
    ]
   },
