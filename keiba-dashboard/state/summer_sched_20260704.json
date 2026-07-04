@@ -682,19 +682,19 @@
     {
      "umaban": 1,
      "horse": "スタースポット",
-     "odds_pre": 3.8,
+     "odds_pre": 4.0,
      "sire": "エフフォーリア"
     },
     {
      "umaban": 7,
      "horse": "フェリスセンダ",
-     "odds_pre": 60.7,
+     "odds_pre": 75.5,
      "sire": "エフフォーリア"
     },
     {
      "umaban": 14,
      "horse": "ロードムーブオン",
-     "odds_pre": 7.1,
+     "odds_pre": 7.3,
      "sire": "エフフォーリア"
     }
    ]
