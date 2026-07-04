@@ -92,6 +92,32 @@
      "n_prev": 4,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 2,
+     "horse": "デイズインザサン",
+     "odds_pre": 49.5,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 11,
+     "horse": "タイセイルビー",
+     "odds_pre": 46.6,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 9,
+     "horse": "ヴァールザーゲン",
+     "odds_pre": 33.8,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 7,
+     "horse": "スワトウ",
+     "odds_pre": 32.0,
+     "lin": "ディープ系"
+    }
    ]
   },
   {
