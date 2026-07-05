@@ -833,7 +833,13 @@
     {
      "umaban": 10,
      "horse": "タマモビスケット",
-     "odds_pre": 23.6,
+     "odds_pre": 24.7,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 6,
+     "horse": "リトセア",
+     "odds_pre": 10.5,
      "lin": "米国系"
     }
    ]
