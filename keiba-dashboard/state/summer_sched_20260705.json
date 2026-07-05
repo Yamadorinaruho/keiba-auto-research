@@ -97,7 +97,7 @@
     {
      "umaban": 6,
      "horse": "ミスマラッカ",
-     "odds_pre": 49.1,
+     "odds_pre": 55.6,
      "lin": "米国系"
     }
    ]
@@ -210,6 +210,14 @@
      "lin": "カナロア系",
      "n_prev": 4,
      "pstat": null
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 5,
+     "horse": "ホカミテダメ",
+     "odds_pre": 51.1,
+     "lin": "サンデー系他"
     }
    ]
   },
