@@ -1,5 +1,5 @@
 {
- "balance": 160069,
+ "balance": 198148,
  "unit_date": "2026-07-05",
  "unit": 800,
  "unit_shinba": 800,
@@ -43,6 +43,18 @@
    "ret": 3279,
    "before": 173590,
    "after": 160069
+  },
+  {
+   "date": "2026-07-05",
+   "unit": 800,
+   "unit_shinba": 800,
+   "n": 18,
+   "hit": 3,
+   "stake": 14400,
+   "ret": 52479,
+   "before": 160069,
+   "after": 198148,
+   "ver": "v2"
   }
  ]
 }
