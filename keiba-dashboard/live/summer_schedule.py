@@ -54,13 +54,15 @@ def cands_for(s, hfilter, date_iso):
         except Exception:
             rel = fin = sire = pstat = None; n_prev = 0
         out.append({"umaban": h["馬番"], "horse": h["馬名"], "rel": rel, "fin": fin,
-                    "lin": lineage_of(sire), "n_prev": n_prev, "pstat": pstat})
+                    "lin": lineage_of(sire), "sire": sire, "n_prev": n_prev, "pstat": pstat})
     return out
 
 
 def main():
     date = sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().strftime("%Y%m%d")
     date_iso = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
+    # 前日プレビュー: 未来日付を渡されたら「前日20時の予告通知」モード(bankroll凍結はしない)
+    preview = date > datetime.date.today().strftime("%Y%m%d")
     # 戦略別の稼働期間はstrategy_spec.WINDOWSに一元定義(芝ダ6/16-8/31・新馬6/1-8/31)。
     shiba_dirt_on = spec.in_window("shiba", date)
     shinba_on = spec.in_window("shinba", date)
@@ -119,10 +121,13 @@ def main():
     ns = sum(r["strat"] == "shiba" for r in races); nd = sum(r["strat"] == "dirt" for r in races)
     nb = sum(r["strat"] == "shinba" for r in races)
     bk = bankroll.load()
-    unit = bankroll.daily_unit(date_iso)   # 当日の1点額を朝に凍結
+    unit = bankroll.daily_unit(date_iso, freeze=not preview)   # 当日の1点額(朝に凍結・前日は参考値)
+    unit_sb = bankroll.daily_unit(date_iso, freeze=not preview, strat="shinba")   # 新馬のみ残高1.0%
+    head = f"📅 *夏戦略 {'明日' if preview else ''}対象レース {date_iso[5:].replace('-','/')}*" \
+           + (" (前日20時プレビュー)" if preview else "")
     lines = ["━━━━━━━━━━━━━━",
-             f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
-             f"💰 *本日の1点 ¥{unit:,}* (残高¥{bk['balance']:,}×0.5%{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
+             f"{head} (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
+             f"💰 *1点 芝ダ¥{unit:,} / 新馬¥{unit_sb:,}* (残高¥{bk['balance']:,}×0.5%/1.0%{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
              "_v2血統フィルタ: 対象血統(芝=ディープ/サンデー他/カナロア・ダ=米国系)×3走目以上を全頭買い。score無し_",
              f"_買い目は単勝オッズ帯(芝{spec.band_str(spec.SHIBA_BAND)}/ダ{spec.band_str(spec.DIRT_BAND)})を発走15分前以内に判定。⚠️帯外は対象外_",
              "_オッズ・人気は朝時点の暫定（未発売は無表示／締切まで変動＝帯判定も変わり得る）_"]
@@ -158,7 +163,18 @@ def main():
             lines.append(f"  {c['umaban']}番 {c['horse']} (父系{c['lin'] or '不明'}){odds_str(omap, c['umaban'])}{btag}")
         if all(band(c) is False for c in elig):
             lines.append(f"  → 🔶 *現時点は全頭オッズ帯外({lo_band}-{hi_band}倍)・締切まで変動*")
-    msg = "\n".join(lines) if races else f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
+    # 系統マップ未収録の警告: キャリア条件は満たすのに血統判定できない馬は買い目から黙って漏れるため明示する
+    unknown = []
+    for r in races:
+        if r["strat"] == "shinba":
+            continue
+        for c in r["cands"]:
+            if c.get("lin") is None and c.get("n_prev", 0) >= spec.MIN_CAREER:
+                sire = c.get("sire") or "前走取得失敗"
+                unknown.append(f"・{r['venue']}{r['rno']}R {c['horse']} (父{sire}・{c['n_prev']+1}走目)")
+    if unknown:
+        lines += ["", "⚠️ *系統マップ未収録の候補馬* (血統判定不能→対象外扱いになる。要分類確認)"] + unknown
+    msg = "\n".join(lines) if races else f"📅 *夏戦略 {'明日' if preview else ''}対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
     print(msg)
     notify.send(msg)
     print(f"[state] {path}")

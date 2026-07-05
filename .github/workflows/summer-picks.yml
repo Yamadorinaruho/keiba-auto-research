@@ -10,13 +10,14 @@ name: summer picks
 on:
   schedule:
     - cron: "0 22 * * 5,6"              # 土/日 7:00 JST : 朝(発走時刻リスト)
+    - cron: "0 11 * * 5,6"              # 金/土 20:00 JST : 前日プレビュー(翌日対象レース+系統不明警告)
     - cron: "30 11 * * 6,0"             # 土/日 20:30 JST : 夜(収支)
     # 巡回(notify)は GAの高頻度cronが自走しないため Cloudflare Worker(keiba-trigger)
     # の Cron Trigger から workflow_dispatch で起動する(*/1,*/5,*/10いずれも自走ゼロを実測)。
   workflow_dispatch:
     inputs:
       mode:
-        description: "schedule | notify | settle | odds"
+        description: "schedule | notify | settle | odds | preview"
         required: true
         default: "notify"
       date:
@@ -58,6 +59,7 @@ jobs:
           else
             case "${{ github.event.schedule }}" in
               "0 22 * * 5,6")    MODE="schedule" ;;   # 朝
+              "0 11 * * 5,6")    MODE="preview" ;;    # 前日20時: 翌日の対象レースを予告
               "30 11 * * 6,0")   MODE="settle" ;;     # 夜
               *)                 MODE="notify" ;;     # 毎分巡回(買い目通知+オッズ記録)
             esac
@@ -77,6 +79,10 @@ jobs:
           cd keiba-dashboard
           if [ "${{ steps.m.outputs.mode }}" = "odds" ]; then
             python3 -m live.odds_log "$DATE"          # 全レースのオッズ記録(較正用)
+          elif [ "${{ steps.m.outputs.mode }}" = "preview" ]; then
+            # 前日20時: 翌日の日付でスケジュール生成(summer_scheduleが未来日付=プレビューと自動判定)
+            [ -z "${{ github.event.inputs.date }}" ] && DATE=$(date -d '+1 day' +%Y%m%d)
+            python3 -m live.summer_schedule "$DATE"
           else
             python3 -m live.summer_${{ steps.m.outputs.mode }} "$DATE"
           fi
