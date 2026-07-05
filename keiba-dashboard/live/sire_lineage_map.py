@@ -105,6 +105,68 @@ LINEAGE = {
     "Tiz the Law": "米国系",            # Constitution(Tapit系)産駒
     "Charlatan": "米国系",              # Speightstown産駒
     "Collected": "米国系",              # City Zip産駒
+    # 2026-07-05 未収録147頭の全量分類(decision 211続き)。父父ルール:
+    #   国内組=keiba.dbで自身の父を逆引き / 海外組=父系ライン(米ダート系→米国系、
+    #   Galileo/Dubawi/Siyouni系→欧州系、豪Danehill系→欧州系=Trapeze Artist/Fastnet Rockの前例踏襲)
+    # --- ディープ系(ディープインパクト産駒) ---
+    "ウォータービルド": "ディープ系", "サトノインプレッサ": "ディープ系", "サングレーザー": "ディープ系",
+    "レッドベルジュール": "ディープ系", "アレスバローズ": "ディープ系", "ヴァンキッシュラン": "ディープ系",
+    "キタノコマンドール": "ディープ系", "Study of Man": "ディープ系",
+    # --- キンカメ系/カナロア系 ---
+    "ミュゼスルタン": "キンカメ系",       # キングカメハメハ産駒
+    "ユアーズトゥルーリ": "カナロア系",    # ロードカナロア産駒
+    # --- サンデー系他 ---
+    "ハッピースプリント": "サンデー系他", "ウインバリアシオン": "サンデー系他", "ショウナンバッハ": "サンデー系他",
+    "トウケイヘイロー": "サンデー系他", "ロンドンタウン": "サンデー系他", "タツゴウゲキ": "サンデー系他",
+    "シュウジ": "サンデー系他", "スピリッツミノル": "サンデー系他", "エタリオウ": "サンデー系他",
+    "ジュンツバサ": "サンデー系他", "ブルドッグボス": "サンデー系他", "ポアゾンブラック": "サンデー系他",
+    "ヤマニンセラフィム": "サンデー系他", "セイクリムズン": "サンデー系他",
+    "Hat Trick": "サンデー系他", "Dabirsim": "サンデー系他",   # SS直仔とその産駒(仏)
+    # --- ロベルト系 ---
+    "サンライズソア": "ロベルト系", "クレスコグランド": "ロベルト系", "ハギノハイブリッド": "ロベルト系",
+    "クラウンレガーロ": "ロベルト系", "Preservationist": "ロベルト系",   # Arch(Kris S.)産駒・ナダルと同扱い
+    "Maurice": "ロベルト系",   # モーリスの英字表記(豪シャトル産駒)
+    # --- サクラバクシンオー系 ---
+    "ダイシンバルカン": "サクラバクシンオー系",
+    # --- 米国系(国内供用) ---
+    "オーヴァルエース": "米国系", "ストーミーシー": "米国系", "アイファーソング": "米国系",
+    "レッドスパーダ": "米国系", "オウケンワールド": "米国系", "スノードラゴン": "米国系",
+    "エーシントップ": "米国系", "シゲルカガ": "米国系", "ナムラタイタン": "米国系",
+    "アルバート": "米国系", "シビルウォー": "米国系", "アポロキングダム": "米国系",
+    "エンパイアペガサス": "米国系", "マルターズアポジー": "米国系", "ワンダーアキュート": "米国系",
+    "カフジテイク": "米国系", "レオアクティブ": "米国系", "ゴールデンバローズ": "米国系",
+    "ダイシンサンダー": "米国系", "アポロソニック": "米国系",
+    # --- 米国系(海外) ---
+    "Omaha Beach": "米国系", "Essential Quality": "米国系", "Global Campaign": "米国系",
+    "Good Magic": "米国系", "Bolt d'Oro": "米国系", "Authentic": "米国系",
+    "Munnings": "米国系", "Palace Malice": "米国系", "パレスマリス": "米国系",
+    "Arrogate": "米国系", "Catholic Boy": "米国系", "Lea": "米国系",
+    "Mitole": "米国系", "Tom's d'Etat": "米国系", "Vekoma": "米国系",
+    "Vino Rosso": "米国系", "Cairo Prince": "米国系", "Cloud Computing": "米国系",
+    "Kantharos": "米国系", "Knicks Go": "米国系", "Maximum Security": "米国系",
+    "Mo Town": "米国系", "Mor Spirit": "米国系", "Not This Time": "米国系",
+    "Beau Liam": "米国系", "St Patrick's Day": "米国系", "Army Mule": "米国系",
+    "Complexity": "米国系", "Daredevil": "米国系", "Improbable": "米国系",
+    "Khozan": "米国系", "Klimt": "米国系", "Known Agenda": "米国系",
+    "Leinster": "米国系", "Maxfield": "米国系", "Shancelot": "米国系",
+    "Take Charge Indy": "米国系", "Audible": "米国系", "Cajun Breeze": "米国系",
+    "Goldencents": "米国系", "Malibu Moon": "米国系", "Mastery": "米国系",
+    "マスタリー": "米国系", "More Than Ready": "米国系", "Unified": "米国系",
+    "Union Rags": "米国系", "Volatile": "米国系", "Will Take Charge": "米国系",
+    # --- 欧州系(豪NZ含む) ---
+    "バンドワゴン": "欧州系", "ヤングマンパワー": "欧州系", "アスクピーターパン": "欧州系",
+    "マクマホン": "欧州系", "キャプテンキング": "欧州系",
+    "St Mark's Basilica": "欧州系", "Iffraaj": "欧州系", "Dandy Man": "欧州系",
+    "Sottsass": "欧州系", "Too Darn Hot": "欧州系", "Blue Point": "欧州系",
+    "Lucky Vega": "欧州系", "Dawn Approach": "欧州系", "Exceedance": "欧州系",
+    "Lope de Vega": "欧州系", "Masar": "欧州系", "Night of Thunder": "欧州系",
+    "Pivotal": "欧州系", "Shalaa": "欧州系", "Siyouni": "欧州系",
+    "Snitzel": "欧州系", "Dragon Pulse": "欧州系", "Earthlight": "欧州系",
+    "Magna Grecia": "欧州系", "Nathaniel": "欧州系", "Written Tycoon": "欧州系",
+    "Zarak": "欧州系", "Australia": "欧州系", "Capitalist": "欧州系",
+    "Dansili": "欧州系", "Farhh": "欧州系", "Ghaiyyath": "欧州系",
+    "Home Affairs": "欧州系", "I Am Invincible": "欧州系", "Ocean Park": "欧州系",
+    "Oscar Performance": "欧州系", "Ulysses": "欧州系", "Victor Ludorum": "欧州系",
     "ヴァンゴッホ": "米国系",      # American Pharoah産駒
     "シスキン": "米国系",          # Siskin=First Defence(Unbridled's Song系)産駒
     # 未登録の取りこぼし追加(2026-06 戦略母集団の頻出種牡馬を系統補完)
