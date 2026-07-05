@@ -924,19 +924,19 @@
     {
      "umaban": 1,
      "horse": "ポルトブルー",
-     "odds_pre": 17.0,
+     "odds_pre": 16.9,
      "sire": "エピファネイア"
     },
     {
      "umaban": 10,
      "horse": "ヴェールダムール",
-     "odds_pre": 9.1,
+     "odds_pre": 8.9,
      "sire": "エピファネイア"
     },
     {
      "umaban": 11,
      "horse": "アーデルボーデン",
-     "odds_pre": 11.2,
+     "odds_pre": 11.8,
      "sire": "エフフォーリア"
     }
    ]
@@ -978,7 +978,8 @@
      "n_prev": 4,
      "pstat": null
     }
-   ]
+   ],
+   "picks": []
   },
   {
    "race_id": "202603020406",
