@@ -460,6 +460,44 @@
      "n_prev": 8,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 9,
+     "horse": "メイプルキュート",
+     "odds_pre": 78.5,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 14,
+     "horse": "トライアンドエラー",
+     "odds_pre": 64.4,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 13,
+     "horse": "ノクスカンパーナ",
+     "odds_pre": 62.0,
+     "lin": "カナロア系"
+    },
+    {
+     "umaban": 6,
+     "horse": "タイセイアビオン",
+     "odds_pre": 43.2,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 5,
+     "horse": "アオイハルカ",
+     "odds_pre": 21.4,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 3,
+     "horse": "サンタカタリナ",
+     "odds_pre": 16.9,
+     "lin": "サンデー系他"
+    }
    ]
   },
   {
