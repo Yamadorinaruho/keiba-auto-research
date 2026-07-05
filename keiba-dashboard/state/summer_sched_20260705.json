@@ -463,33 +463,33 @@
    ],
    "picks": [
     {
-     "umaban": 14,
-     "horse": "トライアンドエラー",
-     "odds_pre": 65.4,
-     "lin": "ディープ系"
-    },
-    {
      "umaban": 13,
      "horse": "ノクスカンパーナ",
-     "odds_pre": 64.1,
+     "odds_pre": 69.4,
      "lin": "カナロア系"
+    },
+    {
+     "umaban": 14,
+     "horse": "トライアンドエラー",
+     "odds_pre": 68.5,
+     "lin": "ディープ系"
     },
     {
      "umaban": 6,
      "horse": "タイセイアビオン",
-     "odds_pre": 44.6,
+     "odds_pre": 46.0,
      "lin": "ディープ系"
     },
     {
      "umaban": 5,
      "horse": "アオイハルカ",
-     "odds_pre": 22.1,
+     "odds_pre": 22.6,
      "lin": "ディープ系"
     },
     {
      "umaban": 3,
      "horse": "サンタカタリナ",
-     "odds_pre": 17.3,
+     "odds_pre": 16.8,
      "lin": "サンデー系他"
     }
    ]
