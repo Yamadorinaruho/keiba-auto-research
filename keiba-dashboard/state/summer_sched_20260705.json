@@ -1137,6 +1137,32 @@
      "n_prev": 4,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 6,
+     "horse": "メイショウジーニー",
+     "odds_pre": 52.5,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 13,
+     "horse": "ホッコームジカ",
+     "odds_pre": 34.6,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 11,
+     "horse": "ルルハート",
+     "odds_pre": 29.4,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 16,
+     "horse": "ベルフィーノ",
+     "odds_pre": 26.6,
+     "lin": "サンデー系他"
+    }
    ]
   },
   {
