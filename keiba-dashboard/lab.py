@@ -10,13 +10,15 @@
 
 使い方:
     import lab
-    lab.report('shiba')                       # 確定条件で集計(芝=146%を再現)
+    lab.report('shiba')                       # 現行v2条件(strategy_spec)で集計
     lab.report('shiba', band=(8, 30))         # 帯だけ8-30に変えて比較
-    lab.report('dirt', min_score=2)           # score閾値を2に
+    lab.report('shiba', blood={'ディープ系'})  # 血統をディープ系のみに
+    lab.report('shiba', **lab.V1['shiba'])    # 旧v1(score版)を再現(芝=146%)
     sel = lab.select('shiba', band=None)      # 帯なしの買い目リストを取得
     print(lab.roi(sel), lab.yearly(sel))
 
-条件の確定仕様は SUMMER_STRATEGIES.md / cc-memory material#25 参照。
+デフォルト条件は live/strategy_spec.py(仕様の単一情報源)から取る=本番v2と常に一致。
+旧v1仕様は V1 プリセットで再現できる。数値の解説は SUMMER_STRATEGIES.md 参照。
 """
 import os
 import re
@@ -24,24 +26,38 @@ import sqlite3
 import pickle
 from collections import defaultdict
 
+from live import strategy_spec as spec
 from live.sire_lineage_map import lineage_of
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(DIR, "keiba.db")
 _HIST_CACHE = os.path.join(DIR, ".lab_hist_cache.pkl")
 
-GOOD2 = {"ディープ系"}                 # 芝 血統 +2
-GOOD1 = {"サンデー系他", "カナロア系"}   # 芝 血統 +1
-US = {"米国系"}                        # ダ 血統 +1相当
-EPI = {"エピファネイア", "エフフォーリア"}  # 新馬 対象父
-LOCAL5 = ("函館", "札幌", "福島", "新潟", "小倉")
-CLS_DIRT = {"未勝利", "1勝", "500万", "2勝", "1000万", "3勝", "1600万", "ｵｰﾌﾟﾝ", "OP(L)"}
+GOOD2 = spec.GOOD2                     # 芝 血統 +2 (v1 score用)
+GOOD1 = spec.GOOD1                     # 芝 血統 +1
+US = spec.DIRT_BLOOD                   # ダ 血統
+EPI = spec.SHINBA_SIRES                # 新馬 対象父
+LOCAL5 = ("函館", "札幌", "福島", "新潟", "小倉")   # v1芝の対象5場(v2は全会場)
+CLS_DIRT = spec.DIRT_CLS
 
-# 各戦略の確定条件(=デフォルト)。report/selectで個別に上書き可能。Noneはフィルタ無効。
+# 各戦略のデフォルト条件=現行v2(strategy_spec準拠)。report/selectで個別に上書き可能。
+# Noneはフィルタ無効。age=馬齢(ダのみ有効: v2=3歳牝, v1=牝全年齢)。
 DEFAULTS = {
-    "shiba":  {"pop": (4, 12), "band": (10, 80), "min_score": 3, "min_career": 2},
-    "dirt":   {"pop": (4, 12), "band": (10, 50), "min_score": 3, "min_career": 2},
-    "shinba": {"pop": None,    "band": None,     "min_score": None, "min_career": None},
+    "shiba":  {"pop": None, "band": spec.SHIBA_BAND, "min_score": None,
+               "min_career": spec.MIN_CAREER, "blood": spec.SHIBA_BLOOD, "venues": None, "age": None},
+    "dirt":   {"pop": None, "band": spec.DIRT_BAND, "min_score": None,
+               "min_career": spec.MIN_CAREER, "blood": spec.DIRT_BLOOD, "venues": None, "age": 3},
+    "shinba": {"pop": None, "band": None, "min_score": None,
+               "min_career": None, "blood": None, "venues": None, "age": None},
+}
+
+# 旧v1(score版, 〜2026-06-27稼働)の再現プリセット: lab.report('shiba', **lab.V1['shiba'])
+V1 = {
+    "shiba":  {"pop": (4, 12), "band": (10, 80), "min_score": 3,
+               "min_career": 2, "blood": None, "venues": LOCAL5, "age": None},
+    "dirt":   {"pop": (4, 12), "band": (10, 50), "min_score": 3,
+               "min_career": 2, "blood": None, "venues": None, "age": None},
+    "shinba": dict(DEFAULTS["shinba"]),
 }
 
 
@@ -113,39 +129,42 @@ def population(strat):
     out = []
     if strat == "shiba":
         cur.execute("""SELECT horse,race_id,popularity,win_odds,finish,win_payout,place_payout,
-            prev_corner4,prev_finish,horse_weight,sire,prev_margin,
+            prev_corner4,prev_finish,horse_weight,sire,prev_margin,venue,
             CAST(substr(date,6,2) AS INT),CAST(substr(date,9,2) AS INT),substr(date,1,4)
             FROM entries WHERE surface='芝' AND class='未勝利' AND age=3 AND gender='牝'
-            AND venue IN ('函館','札幌','福島','新潟','小倉')
             AND win_odds IS NOT NULL AND finish IS NOT NULL""")
-        for horse, rid, pop, odds, fin, pay, ppay, pc4, pfin, wt, sire, pmargin, mm, dd, yr in cur.fetchall():
+        for horse, rid, pop, odds, fin, pay, ppay, pc4, pfin, wt, sire, pmargin, venue, mm, dd, yr in cur.fetchall():
             if not summer(mm, dd):
                 continue
             nrun = pr.get((horse, rid))
             rel = (pc4 / nrun) if (pc4 and nrun) else None
+            lin = lineage_of(sire)
             comp = {"rel": int(rel is not None and rel > 0.33), "fin": int(pfin is not None and pfin >= 6),
-                    "wt": int(wt is not None and 420 <= wt <= 470), "blood": lin_bonus(lineage_of(sire))}
+                    "wt": int(wt is not None and 420 <= wt <= 470), "blood": lin_bonus(lin)}
             score = comp["rel"] + comp["fin"] + comp["wt"] + comp["blood"]
             out.append({"fin": fin, "pay": pay or 0, "ppay": ppay, "yr": yr, "pop": pop, "odds": odds,
                         "score": score, "comp": comp, "career": career.get((horse, rid), 0),
-                        "pmargin": pmargin, "pfin": pfin, "strat": strat})
+                        "pmargin": pmargin, "pfin": pfin, "lin": lin, "venue": venue,
+                        "age": 3, "strat": strat})
     elif strat == "dirt":
         cur.execute("""SELECT horse,race_id,popularity,win_odds,finish,win_payout,place_payout,
-            prev_corner4,prev_finish,horse_weight,sire,prev_margin,
+            prev_corner4,prev_finish,horse_weight,sire,prev_margin,venue,age,
             CAST(substr(date,6,2) AS INT),CAST(substr(date,9,2) AS INT),substr(date,1,4),class,distance
             FROM entries WHERE surface='ダ' AND gender='牝'
             AND win_odds IS NOT NULL AND finish IS NOT NULL""")
-        for horse, rid, pop, odds, fin, pay, ppay, pc4, pfin, wt, sire, pmargin, mm, dd, yr, cls, dist in cur.fetchall():
-            if not summer(mm, dd) or cls not in CLS_DIRT or dist is None or dist > 1400:
+        for horse, rid, pop, odds, fin, pay, ppay, pc4, pfin, wt, sire, pmargin, venue, age, mm, dd, yr, cls, dist in cur.fetchall():
+            if not summer(mm, dd) or cls not in CLS_DIRT or dist is None or dist > spec.DIRT_MAX_DIST:
                 continue
             nrun = pr.get((horse, rid))
             rel = (pc4 / nrun) if (pc4 and nrun) else None
-            comp = {"rel": int(rel is not None and rel <= 0.33), "blood": int(lineage_of(sire) in US),
+            lin = lineage_of(sire)
+            comp = {"rel": int(rel is not None and rel <= 0.33), "blood": int(lin in US),
                     "wt": int(wt is not None and 450 <= wt <= 490), "fin": int(pfin is not None and pfin <= 9)}
             score = comp["rel"] + comp["blood"] + comp["wt"] + comp["fin"]
             out.append({"fin": fin, "pay": pay or 0, "ppay": ppay, "yr": yr, "pop": pop, "odds": odds,
                         "score": score, "comp": comp, "career": career.get((horse, rid), 0),
-                        "pmargin": pmargin, "pfin": pfin, "strat": strat})
+                        "pmargin": pmargin, "pfin": pfin, "lin": lin, "venue": venue,
+                        "age": age, "strat": strat})
     elif strat == "shinba":
         cur.execute("""SELECT win_odds,finish,win_payout,place_payout,sire,popularity,
             CAST(substr(date,6,2) AS INT),substr(date,1,4)
@@ -163,10 +182,15 @@ def population(strat):
 
 
 def select(strat, **ov):
-    """戦略の買い目を返す。ov でデフォルト条件を上書き(pop/band/min_score/min_career, Noneで無効化)。"""
+    """戦略の買い目を返す。ov でデフォルト条件を上書き
+    (pop/band/min_score/min_career/blood/venues/age, Noneで無効化)。"""
     p = {**DEFAULTS[strat], **ov}
     sel = []
     for r in population(strat):
+        if p.get("venues") is not None and r.get("venue") not in p["venues"]:
+            continue
+        if p.get("age") is not None and r.get("age") != p["age"]:
+            continue
         if p["min_career"] is not None and (r["career"] is None or r["career"] < p["min_career"]):
             continue
         if p["pop"] is not None and (r["pop"] is None or not (p["pop"][0] <= r["pop"] <= p["pop"][1])):
@@ -174,6 +198,8 @@ def select(strat, **ov):
         if p["band"] is not None and not (p["band"][0] <= r["odds"] < p["band"][1]):
             continue
         if p["min_score"] is not None and (r["score"] is None or r["score"] < p["min_score"]):
+            continue
+        if p.get("blood") is not None and r.get("lin") not in p["blood"]:
             continue
         sel.append(r)
     return sel

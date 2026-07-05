@@ -10,16 +10,19 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import fetch
 from live import notify
 from live import bankroll
+from live import strategy_spec as spec
 from bs4 import BeautifulSoup
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
 BET_PER = 1000   # フォールバック既定額。本番は bankroll の当日凍結ユニットを使う
 
 
-def result(race_id):
-    """結果ページ → (馬番別着順dict, 単勝配当, 馬番別確定単勝オッズdict)"""
+def result(race_id, force=True):
+    """結果ページ → (馬番別着順dict, 単勝配当, 馬番別確定単勝オッズdict)。
+    force=True(既定): 常に最新を取得(ライブ集計用)。
+    force=False: HTMLキャッシュを使う(過去日の後付け評価=結果不変なので安全・ネット負荷減)。"""
     html = fetch(f"https://race.netkeiba.com/race/result.html?race_id={race_id}",
-                 cache_key=f"result_{race_id}.html", force=True)
+                 cache_key=f"result_{race_id}.html", force=force)
     soup = BeautifulSoup(html, "html.parser")
     fin = {}
     odds = {}
@@ -60,30 +63,32 @@ def main():
     if not bets:
         notify.send(f"💴 *夏戦略 収支 {date_iso[5:].replace('-','/')}*\n本日の対象買い目なし")
         return
-    unit = bankroll.daily_unit(date_iso)   # 当日の1点額(朝に凍結した残高0.5%/上限2万)
+    unit = bankroll.daily_unit(date_iso)   # 当日の1点額(芝ダ=残高0.5%・朝に凍結)
+    unit_shinba = bankroll.daily_unit(date_iso, strat="shinba")   # 新馬のみ残高1.0%
     n = nhit = 0
     stake = ret = 0
     DIV = "━━━━━━━━━━━━━━"
-    lines = [DIV, f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝¥{unit:,}/点)", DIV, ""]
+    lines = [DIV, f"💴 *夏戦略 本日の収支 {date_iso[5:].replace('-','/')}* (単勝 芝ダ¥{unit:,}/新馬¥{unit_shinba:,} /点)", DIV, ""]
     drift = []  # (venue, rno, 馬名, 通知時オッズ, 確定オッズ, 戦略別オッズ帯 or None)
     for r in bets:
         fin, pay, fodds = result(r["race_id"])
+        u = unit_shinba if r.get("strat") == "shinba" else unit
         for pk in r["picks"]:
             um = pk["umaban"]
             rank = fin.get(um)
             n += 1
-            stake += unit
+            stake += u
             if rank == 1 and pay:
                 nhit += 1
-                ret += int(pay / 100 * unit)
-                lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*unit)-unit:,})")
+                ret += int(pay / 100 * u)
+                lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*u)-u:,})")
             else:
                 lines.append(f"× {r['venue']}{r['rno']}R {pk['horse']} → {rank}着")
             lines.append("")   # 各結果の間に空行
             # オッズ変動記録(較正用): 確定オッズは結果ページ優先、勝ち馬は配当からも補完
             of = fodds.get(um) or (pay / 100 if (rank == 1 and pay) else None)
-            # 戦略別オッズ帯(芝10-80/ダ10-50)。新馬はオッズ不問の全頭買いのため帯なし(None)。
-            band = None if r.get("strat") == "shinba" else ((10, 50) if r.get("strat") == "dirt" else (10, 80))
+            # 戦略別オッズ帯(strategy_spec参照)。新馬はオッズ不問の全頭買いのため帯なし(None)。
+            band = None if r.get("strat") == "shinba" else (spec.DIRT_BAND if r.get("strat") == "dirt" else spec.SHIBA_BAND)
             drift.append((r['venue'], r['rno'], pk['horse'], pk.get('odds_pre'), of, band))
     net = ret - stake
     roi = ret / stake * 100 if stake else 0
@@ -92,7 +97,8 @@ def main():
     bk, applied = bankroll.settle(date_iso, stake, ret, n, nhit)
     if applied:
         nxt = bankroll.unit_for(bk["balance"])
-        lines += [f"💰 *残高 ¥{bk['balance']:,}* (前日比 {'+' if net>=0 else ''}¥{net:,}) → 翌日の1点 ¥{nxt:,}", ""]
+        nxt_s = bankroll.unit_for(bk["balance"], bankroll.SHINBA_FRAC)
+        lines += [f"💰 *残高 ¥{bk['balance']:,}* (前日比 {'+' if net>=0 else ''}¥{net:,}) → 翌日の1点 芝ダ¥{nxt:,}/新馬¥{nxt_s:,}", ""]
     else:
         lines += [f"💰 残高 ¥{bk['balance']:,} (本日は精算済み)", ""]
     # オッズ変動レポート(通知時=発走15分前以内 → 確定)
@@ -104,7 +110,7 @@ def main():
         if op and of:
             pct = (of - op) / op * 100
             deltas.append(pct)
-            mark = "⚠️" if out_of_band(of, band) else ""  # 確定でオッズ帯(芝10-80/ダ10-50)を外れた
+            mark = "⚠️" if out_of_band(of, band) else ""  # 確定でオッズ帯を外れた
             dl.append(f"・{v}{rno}R {horse}: {op:.1f}→{of:.1f}倍 ({pct:+.0f}%){mark}")
         else:
             ops = f"{op:.1f}" if op else "?"
@@ -113,7 +119,7 @@ def main():
         avg = sum(deltas) / len(deltas)
         out = sum(1 for _, _, _, op, of, band in drift if op and of and out_of_band(of, band))
         dl.append("")
-        dl.append(f"_平均変動 {avg:+.0f}% / 確定でオッズ帯外(芝10-80/ダ10-50) {out}/{len(deltas)}頭_")
+        dl.append(f"_平均変動 {avg:+.0f}% / 確定でオッズ帯外(芝{spec.band_str(spec.SHIBA_BAND)}/ダ{spec.band_str(spec.DIRT_BAND)}) {out}/{len(deltas)}頭_")
     lines += dl
     text = "\n".join(lines)
     print(text)

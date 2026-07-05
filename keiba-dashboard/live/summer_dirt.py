@@ -3,9 +3,10 @@
 芝の本命戦略(summer_notify)と独立した第2戦略。構造は芝と裏返し:
   芝 = 差し×ディープ系×負け巻き返し / ダート = 前付け×米国系×好走再現。
 
-母集団(v2 decision 182): 夏 × 3歳牝 × ダート≤1400m × 未勝利〜OP × 全会場
-  × 単勝10-50倍 × 3走目以上(過去出走2戦以上) × 父=米国系 を全頭買い(score・人気フィルタは撤廃)。
-  4歳以上は赤字(ROI96%)のため除外し3歳牝に。in-sample(2010-25): 55点/年 ROI144% 全+2,432円/年 +9/16。
+母集団(v2 decision 182ベース): 夏 × 3歳牝 × ダート≤1400m × 未勝利〜OP × 全会場
+  × 帯内オッズ × 3走目以上 × 父=米国系 を全頭買い(条件の実数値は live/strategy_spec.py 参照)。
+  4歳以上は赤字(ROI96%)のため除外し3歳牝に。3歳牝化に伴い帯上限を50→80倍へ拡大。
+  in-sample(2010-25): 55点/年 ROI144% 全+2,432円/年 +9/16。
 
 使い方: python3 -m live.summer_dirt [YYYYMMDD]
 """
@@ -13,13 +14,13 @@ import sys, os, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, live_odds
 from live.summer_notify import prev_run, get_weight, BET_PER, MIN_SCORE
+from live import strategy_spec as spec
 from live.sire_lineage_map import LINEAGE, lineage_of
 from live import notify
 
-US = {"米国系"}   # ダートの妙味血統(芝のディープ/サンデーとは逆)
-# ダート短距離の対象クラス(未勝利〜OP)。旧クラス表記も含める。
-CLS_DIRT = {"未勝利", "1勝", "500万", "2勝", "1000万", "3勝", "1600万", "ｵｰﾌﾟﾝ", "OP(L)"}
-MAX_DIST = 1400
+US = spec.DIRT_BLOOD      # ダートの妙味血統(芝のディープ/サンデーとは逆)
+CLS_DIRT = spec.DIRT_CLS  # ダート短距離の対象クラス(未勝利〜OP、旧クラス表記含む)
+MAX_DIST = spec.DIRT_MAX_DIST
 
 
 def front(rel):   # 前付け(逃げ・先行) ≒ 前走4角が前1/3 (rel<=0.33)
@@ -27,7 +28,7 @@ def front(rel):   # 前付け(逃げ・先行) ≒ 前走4角が前1/3 (rel<=0.3
 
 
 def build_dirt_pick(race_id, feats, date_iso):
-    """v2(血統フィルタ): 3歳牝×ダ≤1400×未勝利〜OP×単勝10-50倍×3走目以上×父米国系を全頭買い。
+    """v2(血統フィルタ): 3歳牝×ダ≤1400×未勝利〜OP×帯内×3走目以上×父米国系を全頭買い(spec参照)。
     score機構は撤廃(2026-06 decision 182)。feats: 朝に計算した不変特徴 {馬番:{lin,n_prev,...}}。"""
     s = parse_shutuba(race_id)
     if s["surface"] != "ダ" or s["class"] not in CLS_DIRT or s["distance"] > MAX_DIST:
@@ -42,7 +43,7 @@ def build_dirt_pick(race_id, feats, date_iso):
         lo = omap.get(h["馬番"])
         pop = lo["pop"] if lo else h.get("人気")
         odds = lo["odds"] if lo else h.get("単勝オッズ")
-        if odds is None or not (10 <= odds < 80):   # 単勝10-80倍(3歳牝化で上限拡大 人気は不問)
+        if odds is None or not (spec.DIRT_BAND[0] <= odds < spec.DIRT_BAND[1]):   # 人気は不問
             continue
         f = fmap.get(h["馬番"])
         if f is not None:
@@ -50,7 +51,7 @@ def build_dirt_pick(race_id, feats, date_iso):
         else:
             _, _, sire, n_prev, _ = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
             lin = lineage_of(sire)
-        if n_prev < 2:   # 3走目以上
+        if n_prev < spec.MIN_CAREER:   # 3走目以上
             continue
         if lin not in US:   # 米国系のみ
             continue
@@ -71,7 +72,7 @@ def format_notify(venue, rno, post, lead_i, p, bet=BET_PER):
     for c in buys:
         lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}* ({c['人気']}人気 {c['odds']}倍 / 父系{c['lin']})")
     lines += ["━━━━━━━━━━━━━━",
-              f"_米国系×単勝10-80倍×3走目以上を全頭。オッズは発走{lead_i}分前時点（変動）_"]
+              f"_米国系×単勝{spec.band_str(spec.DIRT_BAND)}×3走目以上を全頭。オッズは発走{lead_i}分前時点（変動）_"]
     return "\n".join(lines)
 
 

@@ -5,8 +5,7 @@
 通知済みフラグをstateに書き戻して二重通知を防ぐ。(3分毎巡回前提)
 
 v2(血統フィルタ decision 182): score機構を撤廃し血統一本に。利益指標で再評価した結果。
-母集団: 全会場 × 芝 未勝利 × 3歳牝 × 単勝15-80倍 × 3走目以上(過去出走2戦以上)
-  × 父=ディープ系/サンデー系他/カナロア系 を全頭買い(score・人気フィルタは撤廃)。
+母集団: live/strategy_spec.py 参照(仕様の単一情報源)。
   in-sample(2010-25): 128点/年 ROI149% 後期+8,886円/年 +12/16年。フォワード検証中。
 使い方: python3 -m live.summer_notify [YYYYMMDD]  (env TZ=Asia/Tokyo 前提)
 """
@@ -15,6 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, parse_horse, fetch, live_odds
 from live import notify
 from live import bankroll
+from live import strategy_spec as spec
+from live.strategy_spec import GOOD2, GOOD1, SHIBA_BLOOD   # 血統セット(単一情報源)
 from live.sire_lineage_map import LINEAGE, lineage_of
 from bs4 import BeautifulSoup
 
@@ -23,13 +24,7 @@ STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 # = 3分ごとに最新オッズで買い目を送り続ける(dedupなし)。発走が近いほどラベルを締切寄りに。
 LEAD_MAX = 20.0
 BET_PER = 1000     # フォールバック既定額。本番は bankroll.daily_unit(=残高0.5%/上限2万)を使う
-MIN_SCORE = 3      # この点以上の該当馬を全部買う (decision 156)
-# 血統加点 (decision 158/167): 最終形フィルタ下の母集団ROIで格付け。
-# ディープ系155%=+2, サンデー系他134%/カナロア系149%=+1, 他(米国系95%含む<100%)=0。除外なし。
-GOOD2 = {"ディープ系"}                  # +2
-GOOD1 = {"サンデー系他", "カナロア系"}   # +1 (米国系は最終形フィルタ下で95%=加点根拠消失のため除外 decision 167)
-# v2(血統フィルタ): 芝の対象父系統。score機構を撤廃し、この血統×15-80倍×3走目以上を全頭買い。
-SHIBA_BLOOD = GOOD2 | GOOD1            # {ディープ系, サンデー系他, カナロア系}
+MIN_SCORE = 3      # v1(score版)の名残。v1互換評価(strat_eval --strategy v1)のみで使用
 
 
 def lin_bonus(lin):
@@ -119,7 +114,7 @@ def prev_run(horse_id, before_date):
 
 
 def build_pick(race_id, feats, date_iso):
-    """v2(血統フィルタ): 3歳牝×芝未勝利×単勝15-80倍×3走目以上×父{ディープ/サンデー他/カナロア}を全頭買い。
+    """v2(血統フィルタ): 3歳牝×芝未勝利×帯内オッズ×キャリア×血統(条件はstrategy_spec)を全頭買い。
     feats: 朝(summer_schedule)が計算した不変特徴 {馬番: {lin,n_prev,...}}。無ければ直前に父系統を取得。
     score機構は撤廃(2026-06: 利益指標で血統フィルタ一本に方針転換 decision 182)。"""
     s = parse_shutuba(race_id)
@@ -135,7 +130,7 @@ def build_pick(race_id, feats, date_iso):
         lo = omap.get(h["馬番"])
         pop = lo["pop"] if lo else h.get("人気")
         odds = lo["odds"] if lo else h.get("単勝オッズ")
-        if odds is None or not (15 <= odds < 80):   # 単勝15-80倍(人気は不問)
+        if odds is None or not (spec.SHIBA_BAND[0] <= odds < spec.SHIBA_BAND[1]):   # 人気は不問
             continue
         f = fmap.get(h["馬番"])
         if f is not None:   # 朝に計算済みの不変特徴を利用
@@ -143,7 +138,7 @@ def build_pick(race_id, feats, date_iso):
         else:               # フォールバック: 未計算なら直前に父系統取得
             _, _, sire, n_prev, _ = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
             lin = lineage_of(sire)
-        if n_prev < 2:           # 3走目以上(過去出走2戦以上)
+        if n_prev < spec.MIN_CAREER:   # 3走目以上(過去出走2戦以上)
             continue
         if lin not in SHIBA_BLOOD:   # 血統フィルタ
             continue
@@ -166,7 +161,8 @@ def main():
         print(f"[skip] スケジュール未生成: {path}")
         return
     sched = json.load(open(path))
-    unit = bankroll.daily_unit(date_iso)   # 当日の1点額(残高0.5%/上限2万・朝に凍結)
+    unit = bankroll.daily_unit(date_iso)   # 当日の1点額(芝ダ=残高0.5%・朝に凍結)
+    unit_shinba = bankroll.daily_unit(date_iso, strat="shinba")   # 新馬のみ残高1.0%
     now = now_jst()
     changed = False
     blocks = []   # 窓内レースを1巡回=1メッセージに集約(時間が被っても1通)
@@ -197,7 +193,7 @@ def main():
                     text, picks = summer_dirt.process_race(r, date_iso, lead_i, unit)
                 else:
                     from live import summer_shinba
-                    text, picks = summer_shinba.process_race(r, date_iso, lead_i, unit)
+                    text, picks = summer_shinba.process_race(r, date_iso, lead_i, unit_shinba)
             except Exception as e:
                 print(f"[err-{r.get('strat')}] {r['race_id']}: {e}")
                 continue
@@ -229,7 +225,7 @@ def main():
         for c in buys:
             lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}* ({c['人気']}人気 {c['odds']}倍 / 父系{c['lin']})")
         lines += ["━━━━━━━━━━━━━━",
-                  f"_血統(ディープ/サンデー他/カナロア)×単勝15-80倍×3走目以上を全頭。オッズは発走{lead_i}分前時点(変動)_"]
+                  f"_血統(ディープ/サンデー他/カナロア)×単勝{spec.band_str(spec.SHIBA_BAND)}×3走目以上を全頭。オッズは発走{lead_i}分前時点(変動)_"]
         blocks.append("\n".join(lines))
     if blocks:
         DIV = "━━━━━━━━━━━━━━"

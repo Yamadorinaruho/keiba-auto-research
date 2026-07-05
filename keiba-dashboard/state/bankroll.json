@@ -2,6 +2,7 @@
  "balance": 160069,
  "unit_date": "2026-07-05",
  "unit": 800,
+ "unit_shinba": 800,
  "history": [
   {
    "date": "2026-06-21",

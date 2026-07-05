@@ -13,9 +13,10 @@ import sys, os, re, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, parse_horse, live_odds
 from live.summer_notify import BET_PER
+from live import strategy_spec as spec
 
 # エピファネイア系後継種牡馬(現状の国内大黒柱はエフフォーリア。直仔エピも対象に残す)
-SIRES = {"エピファネイア", "エフフォーリア"}
+SIRES = spec.SHINBA_SIRES
 
 
 def horse_sire(horse_id):

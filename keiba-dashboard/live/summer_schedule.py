@@ -10,6 +10,7 @@ import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch, live_odds
 from live.summer_notify import prev_run, lin_bonus   # 前走rel/着順/父/キャリア・血統加点を共用
+from live import strategy_spec as spec                # 仕様の単一情報源(帯・血統・窓)
 from live import summer_dirt                          # ダート第2戦略の対象判定
 from live import summer_shinba                        # 新馬第3戦略(エピ系)の対象判定
 from live.sire_lineage_map import LINEAGE, lineage_of
@@ -60,11 +61,9 @@ def cands_for(s, hfilter, date_iso):
 def main():
     date = sys.argv[1] if len(sys.argv) > 1 else datetime.date.today().strftime("%Y%m%d")
     date_iso = f"{date[:4]}-{date[4:6]}-{date[6:8]}"
-    # 戦略別の稼働期間(MM-DD文字列比較。夏季のみ稼働前提)。
-    #   芝・ダート: 6/16〜8/31 (夏ローカル開幕後) / 新馬: 6/1〜 (2歳新馬戦の開始に合わせ前倒し)
-    md = date_iso[5:]
-    shiba_dirt_on = md >= "06-16"
-    shinba_on = md >= "06-01"
+    # 戦略別の稼働期間はstrategy_spec.WINDOWSに一元定義(芝ダ6/16-8/31・新馬6/1-8/31)。
+    shiba_dirt_on = spec.in_window("shiba", date)
+    shinba_on = spec.in_window("shinba", date)
     races = []
     race_ids = get_race_ids_for_date(date)
     for rid in race_ids:   # 全会場走査(ダートは全場対象)
@@ -113,11 +112,10 @@ def main():
     with open(path, "w") as f:
         json.dump({"date": date_iso, "races": races}, f, ensure_ascii=False, indent=1)
     # v2(血統フィルタ decision 182): 対象血統×3走目以上を全頭買い。score機構は撤廃。
-    SHIBA_BLOOD = {"ディープ系", "サンデー系他", "カナロア系"}
     def blood_ok(c, strat):
-        if c["n_prev"] < 2:   # 3走目以上(過去出走2戦以上)
+        if c["n_prev"] < spec.MIN_CAREER:   # 3走目以上(過去出走2戦以上)
             return False
-        return (c["lin"] in SHIBA_BLOOD) if strat == "shiba" else (c["lin"] == "米国系")
+        return c["lin"] in (spec.SHIBA_BLOOD if strat == "shiba" else spec.DIRT_BLOOD)
     ns = sum(r["strat"] == "shiba" for r in races); nd = sum(r["strat"] == "dirt" for r in races)
     nb = sum(r["strat"] == "shinba" for r in races)
     bk = bankroll.load()
@@ -126,7 +124,7 @@ def main():
              f"📅 *夏戦略 対象レース {date_iso[5:].replace('-','/')}* (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
              f"💰 *本日の1点 ¥{unit:,}* (残高¥{bk['balance']:,}×0.5%{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
              "_v2血統フィルタ: 対象血統(芝=ディープ/サンデー他/カナロア・ダ=米国系)×3走目以上を全頭買い。score無し_",
-             "_買い目は単勝オッズ帯(芝15-80倍/ダ10-80倍)を発走15分前以内に判定。⚠️帯外は対象外_",
+             f"_買い目は単勝オッズ帯(芝{spec.band_str(spec.SHIBA_BAND)}/ダ{spec.band_str(spec.DIRT_BAND)})を発走15分前以内に判定。⚠️帯外は対象外_",
              "_オッズ・人気は朝時点の暫定（未発売は無表示／締切まで変動＝帯判定も変わり得る）_"]
     def odds_str(omap, umaban):   # 朝時点のオッズ・人気(取れた馬のみ)
         lo = omap.get(umaban)

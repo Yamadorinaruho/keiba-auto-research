@@ -28,12 +28,22 @@ CACHE_DIR = ROOT / "state" / "netkeiba_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 
+OFFLINE = False   # Trueにすると、キャッシュミス時にネットへ取りに行かず""を返す(オフライン再解析用)
+
+
 def fetch(url, cache_key=None, force=False):
-    """レート制限付き fetch (グローバルロック)、キャッシュあり"""
+    """レート制限付き fetch (グローバルロック)、キャッシュあり。
+    異常レスポンス(非200/空ボディ=ブロックや400等)はキャッシュ汚染防止のため保存しない。
+    空の既存キャッシュもミス扱いにして再取得する。
+    OFFLINE=True時はキャッシュのみ使用しネットアクセスしない(ヒットしなければ"")。"""
     if cache_key:
         cache_file = CACHE_DIR / cache_key
-        if cache_file.exists() and not force:
-            return cache_file.read_text(encoding="utf-8")
+        if cache_file.exists() and (not force or OFFLINE):   # OFFLINE時はforce無視でキャッシュ優先
+            txt = cache_file.read_text(encoding="utf-8")
+            if txt:                 # 空キャッシュ(過去のブロックで汚染)は使わず再取得
+                return txt
+    if OFFLINE:
+        return ""                   # オフライン: キャッシュに無ければ取得しない
     # グローバルレート制御 (スレッド間で共有)
     with _rate_lock:
         elapsed = time.time() - _last_fetch[0]
@@ -43,6 +53,9 @@ def fetch(url, cache_key=None, force=False):
     res = requests.get(url, headers=HEADERS, timeout=15)
     # netkeibaはサブドメインで文字コードが違う(db=EUC-JP / race=UTF-8)ため自動判定。
     res.encoding = res.apparent_encoding or res.encoding or "UTF-8"
+    if res.status_code != 200 or not res.text:
+        # ブロック/エラー応答はキャッシュしない(良いキャッシュを空で上書きしない)
+        return res.text
     if cache_key:
         (CACHE_DIR / cache_key).write_text(res.text, encoding="utf-8")
     return res.text
@@ -132,11 +145,11 @@ def parse_shutuba(race_id):
     class_str = ""
     all_text = og_title + " " + race_data1_text + " " + race_data2_text + " " + race_name
     # 重賞順 (G1 > G2 > G3 > L > オープン > 平場), 全角ローマ数字 GⅠ GⅡ GⅢ も検出
-    for kw, norm in [("GⅠ","Ｇ１"), ("GⅡ","Ｇ２"), ("GⅢ","Ｇ３"),
-                       ("Ｇ１","Ｇ１"), ("Ｇ２","Ｇ２"), ("Ｇ３","Ｇ３"),
-                       ("G1","Ｇ１"), ("G2","Ｇ２"), ("G3","Ｇ３"),
+    for kw, norm in [("GⅠ","G1"), ("GⅡ","G2"), ("GⅢ","G3"),
+                       ("Ｇ１","G1"), ("Ｇ２","G2"), ("Ｇ３","G3"),
+                       ("G1","G1"), ("G2","G2"), ("G3","G3"),
                        ("(L)","OP(L)"), ("Ｌ)","OP(L)"), ("リステッド","OP(L)"),
-                       ("オープン","ｵｰﾌﾟﾝ"), ("ｵｰﾌﾟﾝ","ｵｰﾌﾟﾝ"), ("OP","ｵｰﾌﾟﾝ"),
+                       ("オープン","オープン"), ("ｵｰﾌﾟﾝ","オープン"), ("OP","オープン"),
                        ("3勝","3勝"), ("2勝","2勝"), ("1勝","1勝"),
                        ("未勝利","未勝利"), ("新馬","新馬")]:
         if kw in all_text:

@@ -30,3 +30,6 @@ state/bet_log_*.json
 
 # lab.py の履歴再構築キャッシュ(36MB・DBから再生成可能)
 .lab_hist_cache.pkl
+
+# strat_eval の日次評価キャッシュ(過去日のみ・スクレイプから再生成可能)
+state/strat_eval_cache/

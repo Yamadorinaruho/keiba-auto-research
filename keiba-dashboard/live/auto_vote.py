@@ -10,6 +10,7 @@
 """
 import os, sys, json, datetime
 from live import bankroll
+from live import strategy_spec as spec
 
 STATE_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "state")
 JST = datetime.timezone(datetime.timedelta(hours=9))
@@ -54,7 +55,7 @@ def record_bet(date, race_id, umaban, amount, horse=""):
     if any(x["umaban"] == umaban for x in rec):
         return
     rec.append({"umaban": umaban, "horse": horse, "amount": amount,
-                "ts": _now().strftime("%H:%M:%S")})
+                "ts": _now().strftime("%H:%M:%S"), "ver": spec.SPEC_VERSION})
     json.dump(log, open(p, "w"), ensure_ascii=False, indent=1)
 
 
@@ -77,17 +78,21 @@ def plan_bets(date, now=None, all_races=False):
     betlog = load_betlog(date)
     force = os.environ.get("AUTOVOTE_FORCE_AMOUNT")   # 設定時は全点をその額に上書き
     max_races = os.environ.get("AUTOVOTE_MAX_RACES")
+    only_strat = os.environ.get("AUTOVOTE_ONLY_STRAT")   # 設定時はその戦略のみ投票(テスト用 例: shinba)
     unit = int(force) if force else bankroll.daily_unit(date_iso)   # 当日の1点額(通知・収支と同一)
+    unit_shinba = int(force) if force else bankroll.daily_unit(date_iso, strat="shinba")   # 新馬のみ残高1.0%
     plan, used_races = [], set()
     for r in sched.get("races", []):
         picks = r.get("picks") or []
         if not picks:
             continue
+        if only_strat and r.get("strat") != only_strat:
+            continue   # 戦略フィルタ(指定戦略以外は投票しない)
         lead = _lead_min(r["post"], now)
         if not all_races and not (BET_LEAD_MIN <= lead <= BET_LEAD_MAX):
             continue
         strat = r.get("strat")
-        amount = unit   # 全戦略・全点 当日の1点額で統一(残高0.5%)
+        amount = unit_shinba if strat == "shinba" else unit   # 新馬=残高1.0%、芝ダ=0.5%
         already = {x["umaban"] for x in betlog.get(r["race_id"], [])}
         for pk in picks:
             if pk["umaban"] in already:
