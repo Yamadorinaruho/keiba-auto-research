@@ -101,7 +101,9 @@ class Strat:
 
 
 def _shinba_match(h):
-    """新馬·エピ系(全戦略共通): 父系がエピファネイア/エフフォーリア。"""
+    """新馬·エピ系(全戦略共通): 父系がエピファネイア/エフフォーリア × 牡のみ(2026-07-10〜, spec v2.1)。"""
+    if not (h.get("性齢") or "").startswith(spec.SHINBA_GENDER):
+        return False
     return bool(h.get("馬ID")) and _epi(horse_sire(h["馬ID"]))
 
 

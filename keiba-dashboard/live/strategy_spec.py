@@ -10,12 +10,15 @@ live側(summer_notify/summer_dirt/summer_shinba/summer_schedule)と
   芝    : 全会場 × 芝 未勝利 × 3歳牝 × 単勝15-80倍 × 3走目以上 × 父{ディープ/サンデー他/カナロア}
   ダート: 全会場 × ダ≤1400m × 未勝利〜OP × 3歳牝 × 単勝10-80倍 × 3走目以上 × 父 米国系
           (decision 182時点は牝全年齢×10-50。その後 3歳牝限定に伴い上限を80へ拡大)
-  新馬  : 全会場 × 芝 2歳新馬 × 父{エピファネイア, エフフォーリア} 全頭・オッズ不問
+  新馬  : 全会場 × 芝 2歳新馬 × 父{エピファネイア, エフフォーリア} × 牡のみ 全頭・オッズ不問
+          (2026-07-10 牡のみに変更=シーズン中の運用変更としてユーザー決定。
+           牝は窓内年別 2024:77%/2025:51%/2026:0% と3季連続マイナスで市場織込みが進行、
+           牡は直近2023-26 ROI168%と健在のため。事前/事後の分離集計用に変更日をここに記録)
 """
 import hashlib
 import json
 
-SPEC_VERSION = "v2"
+SPEC_VERSION = "v2.1"   # v2.1: 新馬を牡のみに(2026-07-10)
 
 # ── 芝戦略 ──
 SHIBA_BAND = (15.0, 80.0)                 # 単勝オッズ lo <= od < hi
@@ -34,6 +37,7 @@ MIN_CAREER = 2        # 過去出走2戦以上 = 3走目以上
 
 # ── 新馬戦略 ──
 SHINBA_SIRES = {"エピファネイア", "エフフォーリア"}
+SHINBA_GENDER = "牡"   # 2026-07-10から牡のみ(性齢の先頭一致で判定)
 
 # ── 稼働窓 (MM-DD, 両端含む)。窓外のピックは「参考」であり成績評価に含めない ──
 WINDOWS = {
@@ -75,7 +79,7 @@ def fingerprint():
         "shiba": [SHIBA_BAND, sorted(SHIBA_BLOOD)],
         "dirt": [DIRT_BAND, sorted(DIRT_BLOOD), sorted(DIRT_CLS), DIRT_MAX_DIST],
         "career": MIN_CAREER,
-        "shinba": sorted(SHINBA_SIRES),
+        "shinba": [sorted(SHINBA_SIRES), SHINBA_GENDER],
         "windows": WINDOWS,
     }
     return hashlib.sha1(json.dumps(payload, ensure_ascii=False, sort_keys=True,

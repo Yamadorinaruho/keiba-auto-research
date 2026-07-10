@@ -122,7 +122,7 @@ def main():
     nb = sum(r["strat"] == "shinba" for r in races)
     bk = bankroll.load()
     unit = bankroll.daily_unit(date_iso, freeze=not preview)   # 当日の1点額(朝に凍結・前日は参考値)
-    unit_sb = bankroll.daily_unit(date_iso, freeze=not preview, strat="shinba")   # 新馬のみ残高1.0%
+    unit_sb = bankroll.daily_unit(date_iso, freeze=not preview, strat="shinba")   # 新馬のみ残高2.0%(2026-07-10〜)
     head = f"📅 *夏戦略 {'明日' if preview else ''}対象レース {date_iso[5:].replace('-','/')}*" \
            + (" (前日20時プレビュー)" if preview else "")
     lines = ["━━━━━━━━━━━━━━",

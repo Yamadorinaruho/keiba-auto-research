@@ -64,7 +64,7 @@ def main():
         notify.send(f"💴 *夏戦略 収支 {date_iso[5:].replace('-','/')}*\n本日の対象買い目なし")
         return
     unit = bankroll.daily_unit(date_iso)   # 当日の1点額(芝ダ=残高0.5%・朝に凍結)
-    unit_shinba = bankroll.daily_unit(date_iso, strat="shinba")   # 新馬のみ残高1.0%
+    unit_shinba = bankroll.daily_unit(date_iso, strat="shinba")   # 新馬のみ残高2.0%(2026-07-10〜)
     n = nhit = 0
     stake = ret = 0
     DIV = "━━━━━━━━━━━━━━"
@@ -80,7 +80,7 @@ def main():
             stake += u
             if rank == 1 and pay:
                 nhit += 1
-                ret += int(pay / 100 * u)
+                ret += pay * u // 100   # 整数演算(float切り捨てで1円ズレるバグを2026-07-10修正)
                 lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*u)-u:,})")
             else:
                 lines.append(f"× {r['venue']}{r['rno']}R {pk['horse']} → {rank}着")

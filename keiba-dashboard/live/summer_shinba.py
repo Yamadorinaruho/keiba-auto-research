@@ -37,10 +37,12 @@ def is_target_race(s):
 
 
 def cands_for(s, date_iso):
-    """対象馬=エピ系産駒のみを抽出(各馬の父を引く)。新馬は前走特徴が無いので父のみ記録。"""
+    """対象馬=エピ系産駒の牡のみを抽出(各馬の父を引く)。新馬は前走特徴が無いので父のみ記録。"""
     out = []
     for h in s["horses"]:
         if not h.get("馬ID"):
+            continue
+        if not (h.get("性齢") or "").startswith(spec.SHINBA_GENDER):   # 牡のみ(2026-07-10〜)
             continue
         sire = horse_sire(h["馬ID"])
         if sire in SIRES:
@@ -58,6 +60,8 @@ def build_pick(race_id, feats, date_iso):
     fmap = {f["umaban"]: f for f in (feats or [])}
     cands = []
     for h in s["horses"]:
+        if not (h.get("性齢") or "").startswith(spec.SHINBA_GENDER):   # 牡のみ(2026-07-10〜)
+            continue
         f = fmap.get(h["馬番"])
         if f is not None:
             sire = f["sire"]
@@ -85,7 +89,7 @@ def format_notify(venue, rno, post, lead_i, p, bet=BET_PER):
         lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}* (父{c['sire']})")
     lines += ["━━━━━━━━━━━━━━",
               f"_オッズ・人気は発走{lead_i}分前時点（締切まで変動します）_",
-              "_新馬は母集団自体が妙味(エピ系の芝新馬=単複プラス・早熟芝型)。オッズ不問で全頭買い_"]
+              "_新馬は母集団自体が妙味(エピ系の芝新馬=単複プラス・早熟芝型)。牡のみ・オッズ不問で全頭買い_"]
     for c in buys:
         pop = f"{c['人気']}人気" if c['人気'] is not None else "人気?"
         od = f"{c['odds']}倍" if c['odds'] is not None else "オッズ?"
