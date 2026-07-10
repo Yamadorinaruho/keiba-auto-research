@@ -81,7 +81,7 @@ def main():
             if rank == 1 and pay:
                 nhit += 1
                 ret += pay * u // 100   # 整数演算(float切り捨てで1円ズレるバグを2026-07-10修正)
-                lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{int(pay/100*u)-u:,})")
+                lines.append(f"○ {r['venue']}{r['rno']}R {pk['horse']} → 1着 単勝{pay:.0f}円 (+¥{pay*u//100-u:,})")
             else:
                 lines.append(f"× {r['venue']}{r['rno']}R {pk['horse']} → {rank}着")
             lines.append("")   # 各結果の間に空行

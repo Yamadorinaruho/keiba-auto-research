@@ -127,7 +127,7 @@ def main():
            + (" (前日20時プレビュー)" if preview else "")
     lines = ["━━━━━━━━━━━━━━",
              f"{head} (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
-             f"💰 *1点 芝ダ¥{unit:,} / 新馬¥{unit_sb:,}* (残高¥{bk['balance']:,}×0.5%/1.0%{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
+             f"💰 *1点 芝ダ¥{unit:,} / 新馬¥{unit_sb:,}* (残高¥{bk['balance']:,}×{bankroll.FRAC:.1%}/{bankroll.SHINBA_FRAC:.1%}{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
              "_v2血統フィルタ: 対象血統(芝=ディープ/サンデー他/カナロア・ダ=米国系)×3走目以上を全頭買い。score無し_",
              f"_買い目は単勝オッズ帯(芝{spec.band_str(spec.SHIBA_BAND)}/ダ{spec.band_str(spec.DIRT_BAND)})を発走15分前以内に判定。⚠️帯外は対象外_",
              "_オッズ・人気は朝時点の暫定（未発売は無表示／締切まで変動＝帯判定も変わり得る）_"]
