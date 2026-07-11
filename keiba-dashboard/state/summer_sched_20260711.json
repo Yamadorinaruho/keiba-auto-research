@@ -565,19 +565,19 @@
     {
      "umaban": 8,
      "horse": "ディオレガーロ",
-     "odds_pre": 61.4,
+     "odds_pre": 63.6,
      "lin": "カナロア系"
     },
     {
      "umaban": 12,
      "horse": "レジーナテンペスタ",
-     "odds_pre": 27.1,
+     "odds_pre": 27.5,
      "lin": "ディープ系"
     },
     {
      "umaban": 10,
      "horse": "フーガカンタービレ",
-     "odds_pre": 18.6,
+     "odds_pre": 20.1,
      "lin": "カナロア系"
     }
    ]
@@ -697,13 +697,13 @@
     {
      "umaban": 14,
      "horse": "シルバープレミア",
-     "odds_pre": 75.2,
+     "odds_pre": 75.1,
      "lin": "ディープ系"
     },
     {
      "umaban": 9,
      "horse": "ルンベーラ",
-     "odds_pre": 30.6,
+     "odds_pre": 29.8,
      "lin": "ディープ系"
     }
    ]
