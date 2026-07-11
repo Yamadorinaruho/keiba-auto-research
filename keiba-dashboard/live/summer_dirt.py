@@ -12,10 +12,10 @@
 """
 import sys, os, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from live.netkeiba_scraper import parse_shutuba, live_odds
+from live.netkeiba_scraper import parse_shutuba, live_odds, parse_horse
 from live.summer_notify import prev_run, get_weight, BET_PER, MIN_SCORE
 from live import strategy_spec as spec
-from live.sire_lineage_map import LINEAGE, lineage_of
+from live.sire_lineage_map import LINEAGE, lineage_of, lineage_of_line
 from live import notify
 
 US = spec.DIRT_BLOOD      # ダートの妙味血統(芝のディープ/サンデーとは逆)
@@ -51,6 +51,11 @@ def build_dirt_pick(race_id, feats, date_iso):
         else:
             _, _, sire, n_prev, _ = prev_run(h["馬ID"], date_iso) if h.get("馬ID") else (None, None, None, 0, None)
             lin = lineage_of(sire)
+            if lin is None and sire and h.get("馬ID"):   # 男系ライン自動判定(2026-07-11, scheduleと同ロジック)
+                try:
+                    lin, _ = lineage_of_line(sire, parse_horse(h["馬ID"]).get("sire_line") or [])
+                except Exception:
+                    pass
         if n_prev < spec.MIN_CAREER:   # 3走目以上
             continue
         if lin not in US:   # 米国系のみ

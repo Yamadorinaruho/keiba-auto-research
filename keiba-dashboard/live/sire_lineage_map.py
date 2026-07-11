@@ -256,6 +256,38 @@ LINEAGE = {
     "グランデッツァ": "サンデー系他", "アドマイヤコジーン": "米国系",
     "ソングオブウインド": "米国系", "オウケンブルースリ": "欧州系", "シルポート": "欧州系",
     "ロードアルティマ": "ロベルト系",  # シンボリクリスエス産駒
+    # ── 2026-07-11 一括追加: 2026年出走で未収録だった29種牡馬のうち確実な27頭 ──
+    # (DB自動導出=自身の競走時代の父から)
+    "エフフォーリア": "ロベルト系",      # 父エピファネイア
+    "サリオス": "サンデー系他",          # 父ハーツクライ
+    "ジャンダルム": "欧州系",            # 父Kitten's Joy
+    "グローリーヴェイズ": "ディープ系",  # 父ディープインパクト
+    "ステルヴィオ": "カナロア系",        # 父ロードカナロア
+    "オメガパフューム": "米国系",        # 父スウェプトオーヴァーボード
+    "ヒロシゲゴールド": "米国系",        # 父サウスヴィグラス
+    "チュウワウィザード": "キンカメ系",  # 父キングカメハメハ
+    "ワイドファラオ": "米国系",          # 父ヘニーヒューズ
+    "コパノチャーリー": "米国系",        # 父アグネスデジタル
+    "アールスター": "カナロア系",        # 父ロードカナロア
+    "インティ": "米国系",                # 父ケイムホーム
+    # (海外種牡馬=血統資料から)
+    "ハイランドリール": "欧州系",        # Galileo
+    "ホットロッドチャーリー": "米国系",  # Oxbow(Deputy Minister系)
+    "カラヴァッジオ": "米国系",          # Scat Daddy(Storm Cat系)
+    "ジェニュイン": "サンデー系他",      # サンデーサイレンス
+    "Modernist": "米国系",               # Uncle Mo
+    "Disco Partner": "米国系",           # Disco Rico(米国短距離)
+    "ウィルテイクチャージ": "米国系",    # Unbridled's Song
+    "Jackie's Warrior": "米国系",        # Maclean's Music(Distorted Humor系)
+    "Mehmas": "欧州系",                  # Acclamation
+    "Upstart": "米国系",                 # Flatter(A.P.Indy系)
+    "Kameko": "欧州系",                  # Kitten's Joy
+    "Flightline": "米国系",              # Tapit(A.P.Indy系)
+    "Showcasing": "欧州系",              # Oasis Dream(Green Desert系)
+    "Karakontie": "米国系",              # Bernstein(Storm Cat系)
+    "Stay Inside": "欧州系",             # Extreme Choice(Danehill系AUS)
+    "ゴールデンマンデラ": "欧州系",      # Golden Horn(Cape Cross→Danzig系, 英ダービー馬)
+    "Peltzer": "欧州系",                 # So You Think(Sadler's Wells系, 豪供用)
 }
 
 import re as _re
@@ -274,3 +306,18 @@ def lineage_of(sire):
         return LINEAGE[m.group(0)]
     eng = sire[m.end():].strip() if m else sire   # 残りの英字部分で照合(英語キー対応)
     return LINEAGE.get(eng)
+
+
+def lineage_of_line(sire, sire_line=None):
+    """父で引けなければ男系ライン(父父→父父父→…)を遡って最初にヒットした系統を返す。
+    系統分類は父系ベースで分岐点(ディープ/カナロア等)がマップに登録済みのため、
+    最初のヒット=最も具体的な枝になる。戻り値 (系統 or None, 判定に使った祖先名 or None)。
+    祖先名がNone以外なら「自動判定」= マップ未収録の新種牡馬を先祖経由で分類したことを示す。"""
+    lin = lineage_of(sire)
+    if lin:
+        return lin, None
+    for anc in (sire_line or []):
+        lin = lineage_of(anc)
+        if lin:
+            return lin, anc
+    return None, None

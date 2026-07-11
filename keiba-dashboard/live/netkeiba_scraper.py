@@ -330,7 +330,7 @@ def parse_horse(horse_id, max_history=10):
 
     # === 父・母父 (/horse/ped/{id}/ blood_table) ===
     # 5世代血統表: 父=cells[0] rs=16 b_ml, 母=最初の rs=16 b_fml セル, 母父=その直後のb_mlセル
-    sire = ""; broodmare_sire = ""
+    sire = ""; broodmare_sire = ""; sire_line = []
     url_ped = f"https://db.netkeiba.com/horse/ped/{horse_id}/"
     html_ped = fetch(url_ped, cache_key=f"hped_{horse_id}.html")
     soup_ped = BeautifulSoup(html_ped, "html.parser")
@@ -352,6 +352,17 @@ def parse_horse(horse_id, max_history=10):
         for td in cells:
             if "b_ml" in (td.get("class") or []) and td.get("rowspan") == "16":
                 sire = first_word(td); break
+
+        # 男系ライン(父父→父父父→父父父父): 文書順で最初に現れる rs=8/4/2 の b_ml。
+        # 父側ブロックが表の上半分に来るため、最初のrs=8 b_ml=父父(母父より先に出る)。
+        # 系統マップ未収録の新種牡馬を父父以上で自動判定するために使う(2026-07-11)。
+        sire_line = []
+        for rs in ("8", "4", "2"):
+            for td in cells:
+                if "b_ml" in (td.get("class") or []) and td.get("rowspan") == rs:
+                    w = first_word(td)
+                    if w: sire_line.append(w)
+                    break
 
         # 母父: 母 (rs=16 b_fml) の直後の rs=8 b_ml
         for i, td in enumerate(cells):
@@ -383,6 +394,7 @@ def parse_horse(horse_id, max_history=10):
         pass
 
     return {"horse_id": horse_id, "sire": sire, "broodmare_sire": broodmare_sire,
+            "sire_line": sire_line,
             "birth_date": birth_date, "history": history}
 
 

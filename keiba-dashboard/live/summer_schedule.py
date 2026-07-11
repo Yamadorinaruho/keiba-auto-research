@@ -8,12 +8,12 @@
 """
 import sys, os, re, json, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch, live_odds
+from live.netkeiba_scraper import get_race_ids_for_date, parse_shutuba, fetch, live_odds, parse_horse
 from live.summer_notify import prev_run, lin_bonus   # 前走rel/着順/父/キャリア・血統加点を共用
 from live import strategy_spec as spec                # 仕様の単一情報源(帯・血統・窓)
 from live import summer_dirt                          # ダート第2戦略の対象判定
 from live import summer_shinba                        # 新馬第3戦略(エピ系)の対象判定
-from live.sire_lineage_map import LINEAGE, lineage_of
+from live.sire_lineage_map import LINEAGE, lineage_of, lineage_of_line
 from live import notify
 from live import bankroll
 from bs4 import BeautifulSoup
@@ -53,8 +53,18 @@ def cands_for(s, hfilter, date_iso):
             rel, fin, sire, n_prev, pstat = prev_run(h["馬ID"], date_iso)
         except Exception:
             rel = fin = sire = pstat = None; n_prev = 0
+        # 血統判定: 父で引けなければ男系ライン(父父→)を遡って自動判定(2026-07-11)。
+        # ped ページは prev_run で取得済み=キャッシュヒットのため追加リクエストなし。
+        lin = lineage_of(sire)
+        lin_via = None
+        if lin is None and sire:
+            try:
+                sline = parse_horse(h["馬ID"]).get("sire_line") or []
+                lin, lin_via = lineage_of_line(sire, sline)
+            except Exception:
+                pass
         out.append({"umaban": h["馬番"], "horse": h["馬名"], "rel": rel, "fin": fin,
-                    "lin": lineage_of(sire), "sire": sire, "n_prev": n_prev, "pstat": pstat})
+                    "lin": lin, "lin_via": lin_via, "sire": sire, "n_prev": n_prev, "pstat": pstat})
     return out
 
 
@@ -164,7 +174,8 @@ def main():
         if all(band(c) is False for c in elig):
             lines.append(f"  → 🔶 *現時点は全頭オッズ帯外({lo_band}-{hi_band}倍)・締切まで変動*")
     # 系統マップ未収録の警告: キャリア条件は満たすのに血統判定できない馬は買い目から黙って漏れるため明示する
-    unknown = []
+    # (男系ライン自動判定でも解決しなかった馬のみ。自動判定できた馬は監査用に別途知らせる)
+    unknown = []; auto = []
     for r in races:
         if r["strat"] == "shinba":
             continue
@@ -172,6 +183,10 @@ def main():
             if c.get("lin") is None and c.get("n_prev", 0) >= spec.MIN_CAREER:
                 sire = c.get("sire") or "前走取得失敗"
                 unknown.append(f"・{r['venue']}{r['rno']}R {c['horse']} (父{sire}・{c['n_prev']+1}走目)")
+            elif c.get("lin_via"):
+                auto.append(f"・{r['venue']}{r['rno']}R {c['horse']} 父{c.get('sire')}→{c['lin']}(父祖{c['lin_via']}経由の自動判定)")
+    if auto:
+        lines += ["", "ℹ️ *系統を男系ラインから自動判定* (マップ未収録の新種牡馬。判定根拠を確認可)"] + auto
     if unknown:
         lines += ["", "⚠️ *系統マップ未収録の候補馬* (血統判定不能→対象外扱いになる。要分類確認)"] + unknown
     msg = "\n".join(lines) if races else f"📅 *夏戦略 {'明日' if preview else ''}対象レース {date_iso[5:].replace('-','/')}*\n  対象レースなし"
