@@ -1,8 +1,8 @@
 {
  "balance": 193350.0,
- "unit_date": "2026-07-11",
+ "unit_date": "2026-07-12",
  "unit": 900,
- "unit_shinba": 3900,
+ "unit_shinba": 1900,
  "history": [
   {
    "date": "2026-06-21",
@@ -70,5 +70,6 @@
    "after": 193350.0,
    "ver": "v2.1"
   }
- ]
+ ],
+ "unit_shinba_wide": 900
 }

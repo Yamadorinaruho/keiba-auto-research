@@ -89,35 +89,51 @@ def login(page):
     page.wait_for_load_state("networkidle")
 
 
+def _check_umaban(page, n):
+    """馬番チェックボックスをJSクリックし、checkedを検証。"""
+    sel = SEL["umaban_fmt"].format(n=n)
+    page.eval_on_selector(sel, "el => el.closest('label').click()")
+    page.wait_for_timeout(300)
+    if not page.eval_on_selector(sel, "el => el.checked"):
+        raise RuntimeError(f"馬番{n}の選択に失敗(発売中か確認)")
+
+
 def bet_one_race(page, race_bets, weekday):
-    """1レース分の単勝をカゴに入れる(race_bets=同一race_idの複数点)。
-    weekday=開催曜日('土'/'日')。各点 amount(円)→口数(amount//100)。発売中のみ動作。"""
+    """1レース×1式別分をカゴに入れる(race_bets=同一race_id・同一bet_typeの複数点)。
+    weekday=開催曜日('土'/'日')。各点 amount(円)→口数(amount//100)。発売中のみ動作。
+    ワイド(?未確認): 式別=ワイド選択後、同じ馬番グリッドで2頭チェック→セット=1組を仮定。
+    UIが2列式(1頭目/2頭目)だった場合はチェック検証で失敗し例外→DRYスクショで実構造を確認する。"""
     r0 = race_bets[0]
+    bt = r0.get("bet_type", "win")
     page.click(_venue_btn(r0["venue"], weekday), timeout=8000)   # 開催場
     page.wait_for_timeout(1200)
     page.click(f"button:has-text('{r0['rno']}R')", timeout=8000)  # レース
     page.wait_for_timeout(1500)
-    page.select_option(SEL["bet_type_sel"], label="単勝")          # 式別=単勝
+    page.select_option(SEL["bet_type_sel"], label="ワイド" if bt == "wide" else "単勝")   # 式別
     page.wait_for_timeout(800)
     for b in race_bets:
         units = max(1, int(b["amount"]) // 100)                   # 1口=100円
-        sel = SEL["umaban_fmt"].format(n=b["umaban"])             # 馬番=Angular。親labelをJSクリック
-        page.eval_on_selector(sel, "el => el.closest('label').click()")
-        page.wait_for_timeout(300)
-        if not page.eval_on_selector(sel, "el => el.checked"):
-            raise RuntimeError(f"馬番{b['umaban']}の選択に失敗(発売中か確認)")
+        if bt == "wide":
+            _check_umaban(page, b["umaban"])
+            _check_umaban(page, b["umaban2"])
+        else:
+            _check_umaban(page, b["umaban"])
         page.fill(SEL["unit_input"], str(units))
         page.click(SEL["set_btn"], timeout=6000)                  # 購入予想リストへ
         page.wait_for_timeout(800)
-        print(f"  [set] {r0['venue']}{r0['rno']}R 単勝 {b['umaban']}番 {units}口(¥{units*100})")
+        lbl = f"ワイド {b['umaban']}-{b['umaban2']}" if bt == "wide" else f"単勝 {b['umaban']}番"
+        print(f"  [set] {r0['venue']}{r0['rno']}R {lbl} {units}口(¥{units*100})")
     page.click(SEL["confirm_btn"], timeout=6000)                  # 入力終了(購入予定リストが自動展開)
     page.wait_for_timeout(1500)
 
 
 def _purchase_race(p, race_bets, date, wd):
-    """1レースを独立セッション(都度ログイン)で投票。実証済みの単レース経路を再利用。成立でTrue。"""
+    """1レース×1式別を独立セッション(都度ログイン)で投票。成立でTrue。
+    ※一括セットは全行同額前提のため、呼び出し側で式別ごとに分割してから渡す(単勝とワイドで1点額が違う)。"""
     r0 = race_bets[0]
-    label = f"{r0['venue']}{r0['rno']}R"
+    bt = r0.get("bet_type", "win")
+    bt_jp = "ワイド" if bt == "wide" else "単勝"
+    label = f"{r0['venue']}{r0['rno']}R({bt_jp})"
     total = sum(b["amount"] for b in race_bets)
     unit = race_bets[0]["amount"]          # 全点同額(=日次1点額)。一括セットで全行に適用
     stamp = datetime.datetime.now(JST).strftime("%H%M%S")
@@ -149,12 +165,16 @@ def _purchase_race(p, race_bets, date, wd):
         body = page.evaluate("() => document.body.innerText")
         if any(k in body for k in ("正常に投票", "投票が完了", "受付", "投票完了")):
             for b in race_bets:
-                auto_vote.record_bet(date, b["race_id"], b["umaban"], b["amount"], b.get("horse", ""))
+                key = f"W{b['umaban']}-{b['umaban2']}" if bt == "wide" else b["umaban"]
+                auto_vote.record_bet(date, b["race_id"], key, b["amount"], b.get("horse", ""))
             print(f"[ipat] ★{label} 投票完了(成立)★ {len(race_bets)}点 / ¥{total:,}")
             try:   # 買えたらSlack通知(.envにSLACK_WEBHOOK_URLが必要)
                 from live import notify
-                horses = " / ".join(f"{b['umaban']}番{b.get('horse','')}" for b in race_bets)
-                notify.send(f"✅ *自動投票成立* {label} 単勝 {horses}  各¥{unit:,}(計¥{total:,})")
+                if bt == "wide":
+                    horses = " / ".join(f"{b['umaban']}-{b['umaban2']}" for b in race_bets)
+                else:
+                    horses = " / ".join(f"{b['umaban']}番{b.get('horse','')}" for b in race_bets)
+                notify.send(f"✅ *自動投票成立* {label} {bt_jp} {horses}  各¥{unit:,}(計¥{total:,})")
             except Exception:
                 pass
             return True
@@ -171,18 +191,18 @@ def place_bets(plan, date):
     except ImportError:
         raise SystemExit("playwright未導入。pip install playwright && playwright install chromium")
     os.makedirs(SHOT_DIR, exist_ok=True)
-    by_race = {}
+    by_race = {}   # (race_id, bet_type)ごとに独立セッション(一括セットが全行同額前提のため)
     for b in plan:
-        by_race.setdefault(b["race_id"], []).append(b)
+        by_race.setdefault((b["race_id"], b.get("bet_type", "win")), []).append(b)
     wd = {5: "土", 6: "日", 0: "月", 1: "火", 2: "水", 3: "木", 4: "金"}[datetime.date(int(date[:4]), int(date[4:6]), int(date[6:8])).weekday()]
-    print(f"[ipat] {'DRY_RUN' if DRY_RUN else '★本番投票★'} {len(plan)}点 / {len(by_race)}レース (開催{wd})")
+    print(f"[ipat] {'DRY_RUN' if DRY_RUN else '★本番投票★'} {len(plan)}点 / {len(by_race)}トランザクション (開催{wd})")
     with sync_playwright() as p:
-        for rid, race_bets in by_race.items():
+        for (rid, bt), race_bets in by_race.items():
             try:
                 _purchase_race(p, race_bets, date, wd)
             except Exception as e:
                 r0 = race_bets[0]
-                print(f"[ipat] {r0['venue']}{r0['rno']}R 失敗(スキップ): {str(e)[:90]}")
+                print(f"[ipat] {r0['venue']}{r0['rno']}R({bt}) 失敗(スキップ): {str(e)[:90]}")
 
 
 def check_creds():

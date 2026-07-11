@@ -17,6 +17,7 @@
      "rel": 0.4375,
      "fin": 13,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "セイウンコウセイ",
      "n_prev": 5,
      "pstat": null
@@ -27,6 +28,7 @@
      "rel": 0.375,
      "fin": 7,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ディーマジェスティ",
      "n_prev": 3,
      "pstat": null
@@ -37,6 +39,7 @@
      "rel": 0.375,
      "fin": 10,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ダノンバラード",
      "n_prev": 3,
      "pstat": null
@@ -47,6 +50,7 @@
      "rel": 0.25,
      "fin": 2,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "タワーオブロンドン",
      "n_prev": 10,
      "pstat": null
@@ -57,6 +61,7 @@
      "rel": 0.6363636363636364,
      "fin": 5,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ドレフォンDrefong",
      "n_prev": 5,
      "pstat": null
@@ -67,6 +72,7 @@
      "rel": 0.45454545454545453,
      "fin": 4,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ディーマジェスティ",
      "n_prev": 9,
      "pstat": null
@@ -77,6 +83,7 @@
      "rel": 0.6875,
      "fin": 15,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "モズアスコット",
      "n_prev": 4,
      "pstat": null
@@ -87,6 +94,7 @@
      "rel": 0.0625,
      "fin": 8,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "Bolt d'Oro",
      "n_prev": 1,
      "pstat": null
@@ -109,6 +117,7 @@
      "rel": 0.3125,
      "fin": 12,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "サートゥルナーリア",
      "n_prev": 2,
      "pstat": null
@@ -119,6 +128,7 @@
      "rel": null,
      "fin": null,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "ロードカナロア",
      "n_prev": 0,
      "pstat": null
@@ -129,6 +139,7 @@
      "rel": 0.4666666666666667,
      "fin": 9,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ホークビルHawkbill",
      "n_prev": 5,
      "pstat": null
@@ -139,6 +150,7 @@
      "rel": 0.25,
      "fin": 9,
      "lin": "ロベルト系",
+     "lin_via": null,
      "sire": "モーリス",
      "n_prev": 3,
      "pstat": null
@@ -149,6 +161,7 @@
      "rel": 0.9444444444444444,
      "fin": 15,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "サートゥルナーリア",
      "n_prev": 4,
      "pstat": null
@@ -156,11 +169,12 @@
     {
      "umaban": 6,
      "horse": "シャンデリュイーズ",
-     "rel": 0.16666666666666666,
-     "fin": 3,
+     "rel": 0.4117647058823529,
+     "fin": 12,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ダノンキングリー",
-     "n_prev": 6,
+     "n_prev": 5,
      "pstat": null
     },
     {
@@ -169,6 +183,7 @@
      "rel": 0.7222222222222222,
      "fin": 11,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "アルアイン",
      "n_prev": 1,
      "pstat": null
@@ -179,6 +194,7 @@
      "rel": 0.3333333333333333,
      "fin": 14,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "コントレイル",
      "n_prev": 3,
      "pstat": null
@@ -189,6 +205,7 @@
      "rel": 0.3888888888888889,
      "fin": 18,
      "lin": "ロベルト系",
+     "lin_via": null,
      "sire": "ナダルNadal",
      "n_prev": 4,
      "pstat": null
@@ -199,6 +216,7 @@
      "rel": 0.05555555555555555,
      "fin": 2,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ダノンキングリー",
      "n_prev": 3,
      "pstat": null
@@ -209,6 +227,7 @@
      "rel": 0.25,
      "fin": 7,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ハクサンムーン",
      "n_prev": 4,
      "pstat": null
@@ -219,6 +238,7 @@
      "rel": 0.6,
      "fin": 15,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "マジェスティックウォリアーMajestic Warrior",
      "n_prev": 3,
      "pstat": null
@@ -229,6 +249,7 @@
      "rel": 0.11764705882352941,
      "fin": 6,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ベンバトルBenbatl",
      "n_prev": 8,
      "pstat": null
@@ -239,6 +260,7 @@
      "rel": 1.0,
      "fin": 3,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "サトノクラウン",
      "n_prev": 3,
      "pstat": null
@@ -249,6 +271,7 @@
      "rel": 0.3888888888888889,
      "fin": 5,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "リアルスティール",
      "n_prev": 1,
      "pstat": null
@@ -259,6 +282,7 @@
      "rel": 0.16666666666666666,
      "fin": 6,
      "lin": "ロベルト系",
+     "lin_via": null,
      "sire": "エピファネイア",
      "n_prev": 2,
      "pstat": null
@@ -269,6 +293,7 @@
      "rel": 0.5714285714285714,
      "fin": 6,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "シルバーステート",
      "n_prev": 5,
      "pstat": null
@@ -291,6 +316,7 @@
      "rel": 0.5,
      "fin": 12,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "キタサンブラック",
      "n_prev": 2,
      "pstat": null
@@ -298,21 +324,23 @@
     {
      "umaban": 2,
      "horse": "ボーントゥラブユー",
-     "rel": 0.1875,
-     "fin": 6,
+     "rel": 0.2,
+     "fin": 5,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "コントレイル",
-     "n_prev": 8,
+     "n_prev": 7,
      "pstat": null
     },
     {
      "umaban": 3,
      "horse": "ダンツアラーム",
-     "rel": 0.8125,
-     "fin": 8,
+     "rel": 0.9090909090909091,
+     "fin": 5,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "リアルスティール",
-     "n_prev": 8,
+     "n_prev": 7,
      "pstat": null
     },
     {
@@ -321,6 +349,7 @@
      "rel": 0.75,
      "fin": 11,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "Saxon Warrior",
      "n_prev": 4,
      "pstat": null
@@ -328,11 +357,12 @@
     {
      "umaban": 5,
      "horse": "ビアーレ",
-     "rel": 0.3125,
-     "fin": 11,
+     "rel": 0.1875,
+     "fin": 5,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ミスチヴィアスアレックスMischevious Alex",
-     "n_prev": 4,
+     "n_prev": 3,
      "pstat": null
     },
     {
@@ -341,6 +371,7 @@
      "rel": 0.9375,
      "fin": 13,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "オルフェーヴル",
      "n_prev": 4,
      "pstat": null
@@ -348,21 +379,23 @@
     {
      "umaban": 7,
      "horse": "ベネディクション",
-     "rel": 0.5,
-     "fin": 2,
+     "rel": 0.8125,
+     "fin": 6,
      "lin": "ロベルト系",
+     "lin_via": null,
      "sire": "エピファネイア",
-     "n_prev": 7,
+     "n_prev": 6,
      "pstat": null
     },
     {
      "umaban": 8,
      "horse": "アルケミラモリス",
-     "rel": 0.125,
-     "fin": 6,
+     "rel": 0.5,
+     "fin": 5,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ロジャーバローズ",
-     "n_prev": 7,
+     "n_prev": 6,
      "pstat": null
     },
     {
@@ -371,6 +404,7 @@
      "rel": 0.25,
      "fin": 7,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "コントレイル",
      "n_prev": 6,
      "pstat": null
@@ -381,6 +415,7 @@
      "rel": 0.5,
      "fin": 15,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "シルバーステート",
      "n_prev": 3,
      "pstat": null
@@ -391,6 +426,7 @@
      "rel": 0.125,
      "fin": 7,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "シルバーステート",
      "n_prev": 4,
      "pstat": null
@@ -401,6 +437,7 @@
      "rel": 0.5625,
      "fin": 10,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ワールドエース",
      "n_prev": 2,
      "pstat": null
@@ -411,6 +448,7 @@
      "rel": 0.9375,
      "fin": 11,
      "lin": "ロベルト系",
+     "lin_via": null,
      "sire": "エピファネイア",
      "n_prev": 3,
      "pstat": null
@@ -433,6 +471,7 @@
      "rel": 0.25,
      "fin": 7,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "ロードカナロア",
      "n_prev": 5,
      "pstat": null
@@ -443,6 +482,7 @@
      "rel": 0.5,
      "fin": 5,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "タワーオブロンドン",
      "n_prev": 3,
      "pstat": null
@@ -453,6 +493,7 @@
      "rel": 0.125,
      "fin": 2,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ミスチヴィアスアレックスMischevious Alex",
      "n_prev": 4,
      "pstat": null
@@ -463,6 +504,7 @@
      "rel": 0.9285714285714286,
      "fin": 13,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "シルバーステート",
      "n_prev": 1,
      "pstat": null
@@ -473,6 +515,7 @@
      "rel": 0.4375,
      "fin": 3,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "ジャスタウェイ",
      "n_prev": 7,
      "pstat": null
@@ -483,6 +526,7 @@
      "rel": 0.6,
      "fin": 10,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "パイロPyro",
      "n_prev": 4,
      "pstat": null
@@ -493,6 +537,7 @@
      "rel": 0.21428571428571427,
      "fin": 6,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ダノンプレミアム",
      "n_prev": 3,
      "pstat": null
@@ -515,6 +560,7 @@
      "rel": 0.16666666666666666,
      "fin": 6,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "イスラボニータ",
      "n_prev": 4,
      "pstat": null
@@ -525,6 +571,7 @@
      "rel": 1.0,
      "fin": 12,
      "lin": "ロベルト系",
+     "lin_via": null,
      "sire": "エピファネイア",
      "n_prev": 3,
      "pstat": null
@@ -535,6 +582,7 @@
      "rel": 0.5625,
      "fin": 8,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ブリックスアンドモルタルBricks and Mortar",
      "n_prev": 2,
      "pstat": null
@@ -545,6 +593,7 @@
      "rel": 0.7692307692307693,
      "fin": 11,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ブリックスアンドモルタルBricks and Mortar",
      "n_prev": 2,
      "pstat": null
@@ -555,6 +604,7 @@
      "rel": null,
      "fin": null,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "キタサンブラック",
      "n_prev": 0,
      "pstat": null
@@ -565,6 +615,7 @@
      "rel": 0.1875,
      "fin": 6,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "ウインブライト",
      "n_prev": 8,
      "pstat": null
@@ -587,6 +638,7 @@
      "rel": 0.2222222222222222,
      "fin": 6,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "キズナ",
      "n_prev": 3,
      "pstat": null
@@ -597,6 +649,7 @@
      "rel": 0.375,
      "fin": 11,
      "lin": "キンカメ系",
+     "lin_via": null,
      "sire": "レイデオロ",
      "n_prev": 5,
      "pstat": null
@@ -607,6 +660,7 @@
      "rel": 0.625,
      "fin": 13,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ブリックスアンドモルタルBricks and Mortar",
      "n_prev": 5,
      "pstat": null
@@ -617,6 +671,7 @@
      "rel": 0.875,
      "fin": 13,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "シルバーステート",
      "n_prev": 4,
      "pstat": null
@@ -627,6 +682,7 @@
      "rel": 0.0625,
      "fin": 2,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ハービンジャーHarbinger",
      "n_prev": 9,
      "pstat": null
@@ -649,6 +705,7 @@
      "rel": 0.9333333333333333,
      "fin": 11,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "マテラスカイ",
      "n_prev": 11,
      "pstat": null
@@ -659,6 +716,7 @@
      "rel": null,
      "fin": null,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "アドマイヤマーズ",
      "n_prev": 0,
      "pstat": null
@@ -669,6 +727,7 @@
      "rel": 0.7222222222222222,
      "fin": 6,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "キタサンブラック",
      "n_prev": 3,
      "pstat": null
@@ -679,6 +738,7 @@
      "rel": 0.6111111111111112,
      "fin": 11,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "ウインブライト",
      "n_prev": 3,
      "pstat": null
@@ -686,11 +746,12 @@
     {
      "umaban": 9,
      "horse": "フェブリノ",
-     "rel": 0.125,
-     "fin": 4,
+     "rel": 0.1111111111111111,
+     "fin": 3,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "マクフィMakfi",
-     "n_prev": 11,
+     "n_prev": 10,
      "pstat": null
     },
     {
@@ -699,6 +760,7 @@
      "rel": 0.75,
      "fin": 14,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "アドマイヤマーズ",
      "n_prev": 6,
      "pstat": null
@@ -709,6 +771,7 @@
      "rel": 0.2222222222222222,
      "fin": 2,
      "lin": "キンカメ系",
+     "lin_via": null,
      "sire": "リオンディーズ",
      "n_prev": 3,
      "pstat": null
@@ -726,14 +789,62 @@
    "strat": "shinba",
    "cands": [
     {
+     "umaban": 1,
+     "horse": "ジオ",
+     "sire": "シスキン",
+     "win": true
+    },
+    {
      "umaban": 5,
      "horse": "イッペイ",
+     "sire": "エフフォーリア",
+     "win": true
+    },
+    {
+     "umaban": 9,
+     "horse": "トムクリオーザ",
+     "sire": "エピファネイア",
+     "win": true
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 1,
+     "horse": "ジオ",
+     "odds_pre": 7.3,
+     "sire": "シスキン"
+    },
+    {
+     "umaban": 5,
+     "horse": "イッペイ",
+     "odds_pre": 1.9,
      "sire": "エフフォーリア"
     },
     {
      "umaban": 9,
      "horse": "トムクリオーザ",
+     "odds_pre": 14.8,
      "sire": "エピファネイア"
+    }
+   ],
+   "wide_pairs": [
+    {
+     "a": 1,
+     "b": 5,
+     "horses": "ジオ-イッペイ",
+     "unit": 900
+    },
+    {
+     "a": 1,
+     "b": 9,
+     "horses": "ジオ-トムクリオーザ",
+     "unit": 900
+    },
+    {
+     "a": 5,
+     "b": 9,
+     "horses": "イッペイ-トムクリオーザ",
+     "unit": 900
     }
    ]
   },
@@ -750,7 +861,30 @@
     {
      "umaban": 1,
      "horse": "サイモンレガシー",
+     "sire": "エフフォーリア",
+     "win": true
+    },
+    {
+     "umaban": 6,
+     "horse": "シックパラソル",
+     "sire": "エピファネイア",
+     "win": false
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 1,
+     "horse": "サイモンレガシー",
+     "odds_pre": 6.8,
      "sire": "エフフォーリア"
+    }
+   ],
+   "wide_pairs": [
+    {
+     "a": 1,
+     "b": 6,
+     "horses": "サイモンレガシー-シックパラソル",
+     "unit": 900
     }
    ]
   },
@@ -770,6 +904,7 @@
      "rel": 0.1875,
      "fin": 4,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "インディチャンプ",
      "n_prev": 7,
      "pstat": null
@@ -780,6 +915,7 @@
      "rel": 0.375,
      "fin": 6,
      "lin": "キンカメ系",
+     "lin_via": null,
      "sire": "ラブリーデイ",
      "n_prev": 3,
      "pstat": null
@@ -790,6 +926,7 @@
      "rel": 1.0,
      "fin": 16,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "サトノダイヤモンド",
      "n_prev": 6,
      "pstat": null
@@ -797,11 +934,12 @@
     {
      "umaban": 6,
      "horse": "ハナイロマヒナ",
-     "rel": 0.8181818181818182,
+     "rel": 0.26666666666666666,
      "fin": 7,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ロゴタイプ",
-     "n_prev": 6,
+     "n_prev": 5,
      "pstat": null
     },
     {
@@ -810,6 +948,7 @@
      "rel": 0.1111111111111111,
      "fin": 15,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "キタサンブラック",
      "n_prev": 3,
      "pstat": null
@@ -820,6 +959,7 @@
      "rel": 0.7142857142857143,
      "fin": 11,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ノーブルミッションNoble Mission",
      "n_prev": 8,
      "pstat": null
@@ -830,6 +970,7 @@
      "rel": 0.1111111111111111,
      "fin": 6,
      "lin": "サクラバクシンオー系",
+     "lin_via": null,
      "sire": "ビッグアーサー",
      "n_prev": 4,
      "pstat": null
@@ -840,6 +981,7 @@
      "rel": 0.6666666666666666,
      "fin": 8,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ファインニードル",
      "n_prev": 7,
      "pstat": null
@@ -850,6 +992,7 @@
      "rel": 0.25,
      "fin": 2,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "キズナ",
      "n_prev": 1,
      "pstat": null
@@ -860,6 +1003,7 @@
      "rel": 0.6875,
      "fin": 12,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ノーブルミッションNoble Mission",
      "n_prev": 5,
      "pstat": null
@@ -867,11 +1011,12 @@
     {
      "umaban": 16,
      "horse": "ルーチェコメット",
-     "rel": 0.6875,
-     "fin": 7,
+     "rel": 0.625,
+     "fin": 6,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ダノンキングリー",
-     "n_prev": 3,
+     "n_prev": 2,
      "pstat": null
     }
    ]
@@ -892,6 +1037,7 @@
      "rel": 0.4375,
      "fin": 14,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "アドマイヤマーズ",
      "n_prev": 8,
      "pstat": null
@@ -902,6 +1048,7 @@
      "rel": 0.8125,
      "fin": 4,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ダノンレジェンド",
      "n_prev": 11,
      "pstat": null
@@ -912,6 +1059,7 @@
      "rel": 0.5625,
      "fin": 13,
      "lin": "キンカメ系",
+     "lin_via": null,
      "sire": "ルーラーシップ",
      "n_prev": 1,
      "pstat": null
@@ -922,6 +1070,7 @@
      "rel": 0.0625,
      "fin": 4,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "サートゥルナーリア",
      "n_prev": 3,
      "pstat": null
@@ -932,6 +1081,7 @@
      "rel": 0.125,
      "fin": 12,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "Liam's Map",
      "n_prev": 4,
      "pstat": null
@@ -942,6 +1092,7 @@
      "rel": 0.1111111111111111,
      "fin": 7,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ダンカークDunkirk",
      "n_prev": 3,
      "pstat": null
@@ -952,6 +1103,7 @@
      "rel": 0.4375,
      "fin": 9,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "マインドユアビスケッツMind Your Biscuits",
      "n_prev": 4,
      "pstat": null
@@ -974,6 +1126,7 @@
      "rel": 0.125,
      "fin": 9,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ベンバトルBenbatl",
      "n_prev": 3,
      "pstat": null
@@ -984,6 +1137,7 @@
      "rel": null,
      "fin": null,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "ダノンスマッシュ",
      "n_prev": 0,
      "pstat": null
@@ -994,6 +1148,7 @@
      "rel": 0.125,
      "fin": 14,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "アメリカンペイトリオット",
      "n_prev": 1,
      "pstat": null
@@ -1004,6 +1159,7 @@
      "rel": 0.25,
      "fin": 14,
      "lin": "サンデー系他",
+     "lin_via": null,
      "sire": "アドマイヤマーズ",
      "n_prev": 6,
      "pstat": null
@@ -1014,6 +1170,7 @@
      "rel": 0.1875,
      "fin": 14,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ミスチヴィアスアレックスMischevious Alex",
      "n_prev": 8,
      "pstat": null
@@ -1024,6 +1181,7 @@
      "rel": 0.3,
      "fin": 4,
      "lin": "欧州系",
+     "lin_via": null,
      "sire": "ベンバトルBenbatl",
      "n_prev": 7,
      "pstat": null
@@ -1034,6 +1192,7 @@
      "rel": 0.3125,
      "fin": 8,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "ダノンスマッシュ",
      "n_prev": 4,
      "pstat": null
@@ -1044,6 +1203,7 @@
      "rel": 0.6153846153846154,
      "fin": 8,
      "lin": "カナロア系",
+     "lin_via": null,
      "sire": "ロードカナロア",
      "n_prev": 8,
      "pstat": null
@@ -1051,11 +1211,12 @@
     {
      "umaban": 9,
      "horse": "ウインディナナコ",
-     "rel": 0.6666666666666666,
-     "fin": 4,
+     "rel": 0.4375,
+     "fin": 11,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ミッキーアイル",
-     "n_prev": 2,
+     "n_prev": 1,
      "pstat": null
     },
     {
@@ -1064,6 +1225,7 @@
      "rel": 0.2222222222222222,
      "fin": 6,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "フィエールマン",
      "n_prev": 8,
      "pstat": null
@@ -1074,6 +1236,7 @@
      "rel": 0.1875,
      "fin": 11,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "シスキンSiskin",
      "n_prev": 2,
      "pstat": null
@@ -1084,6 +1247,7 @@
      "rel": 0.3125,
      "fin": 8,
      "lin": "ディープ系",
+     "lin_via": null,
      "sire": "ロジャーバローズ",
      "n_prev": 4,
      "pstat": null
@@ -1094,6 +1258,7 @@
      "rel": 0.4666666666666667,
      "fin": 9,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "ミスチヴィアスアレックスMischevious Alex",
      "n_prev": 6,
      "pstat": null
@@ -1116,6 +1281,7 @@
      "rel": 0.5625,
      "fin": 5,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "レッドファルクス",
      "n_prev": 6,
      "pstat": null
@@ -1126,6 +1292,7 @@
      "rel": 0.16666666666666666,
      "fin": 1,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "Knicks Go",
      "n_prev": 4,
      "pstat": null
@@ -1136,6 +1303,7 @@
      "rel": 0.06666666666666667,
      "fin": 1,
      "lin": "米国系",
+     "lin_via": null,
      "sire": "Speightstown",
      "n_prev": 4,
      "pstat": null

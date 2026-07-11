@@ -9,7 +9,7 @@
   ※エフフォーリア(エピ産駒・社台SS)は2026年から初年度産駒がデビュー。エピ直仔は逓減するため両父を対象。
 使い方: python3 -m live.summer_shinba [YYYYMMDD]
 """
-import sys, os, re, datetime
+import sys, os, re, datetime, itertools
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from live.netkeiba_scraper import parse_shutuba, parse_horse, live_odds
 from live.summer_notify import BET_PER
@@ -37,22 +37,21 @@ def is_target_race(s):
 
 
 def cands_for(s, date_iso):
-    """対象馬=エピ系産駒の牡のみを抽出(各馬の父を引く)。新馬は前走特徴が無いので父のみ記録。"""
+    """対象産駒(3種牡馬・牡牝込み)を抽出。win=単勝対象(エピは牡のみ)。全員ワイドBOXの脚。"""
     out = []
     for h in s["horses"]:
         if not h.get("馬ID"):
             continue
-        if not (h.get("性齢") or "").startswith(spec.SHINBA_GENDER):   # 牡のみ(2026-07-10〜)
-            continue
         sire = horse_sire(h["馬ID"])
-        if sire in SIRES:
-            out.append({"umaban": h["馬番"], "horse": h["馬名"], "sire": sire})
+        if spec.shinba_wide_ok(sire):
+            out.append({"umaban": h["馬番"], "horse": h["馬名"], "sire": sire,
+                        "win": spec.shinba_ok(sire, h.get("性齢"))})
     return out
 
 
 def build_pick(race_id, feats, date_iso):
-    """feats: 朝に計算したエピ系候補 [{umaban,horse,sire}]。無ければ直前に父を引いて判定。
-    エピ系の芝新馬は母集団自体がエッジのため、オッズ不問で全頭買う。"""
+    """feats: 朝に計算した候補 [{umaban,horse,sire,win}]。無ければ直前に父を引いて判定。
+    v3: 単勝=win対象(エピ牡+エフ全頭+シスキン全頭)・ワイドBOX=対象産駒2頭以上のとき全ペア(牡牝込み)。"""
     s = parse_shutuba(race_id)
     if s["surface"] != "芝" or s["class"] != "新馬":
         return None
@@ -60,52 +59,69 @@ def build_pick(race_id, feats, date_iso):
     fmap = {f["umaban"]: f for f in (feats or [])}
     cands = []
     for h in s["horses"]:
-        if not (h.get("性齢") or "").startswith(spec.SHINBA_GENDER):   # 牡のみ(2026-07-10〜)
-            continue
         f = fmap.get(h["馬番"])
         if f is not None:
             sire = f["sire"]
         else:   # フォールバック: 朝に未計算なら直前に父を取得
             sire = horse_sire(h["馬ID"]) if h.get("馬ID") else None
-            if sire not in SIRES:
-                continue
+        if not spec.shinba_wide_ok(sire):
+            continue
+        win = f["win"] if (f is not None and "win" in f) else spec.shinba_ok(sire, h.get("性齢"))
         lo = omap.get(h["馬番"])
         cands.append({"馬番": h["馬番"], "馬名": h["馬名"],
                       "人気": lo["pop"] if lo else h.get("人気"),
-                      "odds": lo["odds"] if lo else h.get("単勝オッズ"), "sire": sire})
+                      "odds": lo["odds"] if lo else h.get("単勝オッズ"), "sire": sire, "win": win})
     if not cands:
         return None
     cands.sort(key=lambda x: x["馬番"])
-    return {"race_name": s["race_name"], "distance": s["distance"], "buys": cands}
+    buys = [c for c in cands if c["win"]]
+    wide = list(itertools.combinations([c["馬番"] for c in cands], 2)) if len(cands) >= 2 else []
+    if not buys and not wide:
+        return None
+    return {"race_name": s["race_name"], "distance": s["distance"],
+            "buys": buys, "cands": cands, "wide": wide}
 
 
-def format_notify(venue, rno, post, lead_i, p, bet=BET_PER):
-    buys = p["buys"]
+def format_notify(venue, rno, post, lead_i, p, bet=BET_PER, bet_wide=0):
+    buys, cands, wide = p["buys"], p["cands"], p["wide"]
+    name_of = {c["馬番"]: c["馬名"] for c in cands}
     head = (f"🌱 *[新馬·エピ系] {venue}{rno}R* {p['race_name']} (芝{p['distance']}m)\n"
             f"⏱ 発走 {post} → *発走{lead_i}分前*")
-    lines = [head, "━━━━━━━━━━━━━━",
-             f"🎯 *買い目: 単勝 各¥{bet:,} (計¥{bet*len(buys):,})*"]
-    for c in buys:
-        lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}* (父{c['sire']})")
+    lines = [head, "━━━━━━━━━━━━━━"]
+    if buys:
+        lines.append(f"🎯 *買い目: 単勝 各¥{bet:,} (計¥{bet*len(buys):,})*")
+        for c in buys:
+            lines.append(f"  ▶ *{c['馬番']}番 {c['馬名']}* (父{c['sire']})")
+    if wide:
+        lines.append(f"🤝 *ワイドBOX: 各¥{bet_wide:,} (計¥{bet_wide*len(wide):,})*")
+        for a, b in wide:
+            lines.append(f"  ▶ ワイド {a}-{b} ({name_of.get(a,'?')}×{name_of.get(b,'?')})")
     lines += ["━━━━━━━━━━━━━━",
               f"_オッズ・人気は発走{lead_i}分前時点（締切まで変動します）_",
-              "_新馬は母集団自体が妙味(エピ系の芝新馬=単複プラス・早熟芝型)。牡のみ・オッズ不問で全頭買い_"]
-    for c in buys:
+              "_v3(7/12〜): 単勝=エピ牡+エフ全頭+シスキン全頭・オッズ不問 / ワイドBOX=対象産駒2頭以上(牡牝込み)_"]
+    for c in cands:
         pop = f"{c['人気']}人気" if c['人気'] is not None else "人気?"
         od = f"{c['odds']}倍" if c['odds'] is not None else "オッズ?"
-        lines.append(f"・{c['馬番']}番 *{c['馬名']}* {pop} *{od}* 父{c['sire']}")
+        tag = "" if c["win"] else " (ワイドのみ)"
+        lines.append(f"・{c['馬番']}番 *{c['馬名']}* {pop} *{od}* 父{c['sire']}{tag}")
     return "\n".join(lines)
 
 
 def process_race(r, date_iso, lead_i, bet=BET_PER):
-    """巡回から呼ぶ。(通知文 or None, state保存用picks) を返す。"""
+    """巡回から呼ぶ。(通知文 or None, state保存用picks, wide_pairs) を返す。
+    picksは単勝対象のみ(auto_voteが単勝を張るため)。ワイドは手動投票=記録のみ。"""
     p = build_pick(r["race_id"], r.get("cands"), date_iso)
     if not p:
-        return None, []
-    text = format_notify(r["venue"], r["rno"], r["post"], lead_i, p, bet)
+        return None, [], []
+    from live import bankroll
+    bet_wide = bankroll.daily_unit(date_iso, strat="shinba_wide")
+    text = format_notify(r["venue"], r["rno"], r["post"], lead_i, p, bet, bet_wide)
     picks = [{"umaban": c["馬番"], "horse": c["馬名"], "odds_pre": c["odds"], "sire": c["sire"]}
              for c in p["buys"]]
-    return text, picks
+    name_of = {c["馬番"]: c["馬名"] for c in p["cands"]}
+    wide_pairs = [{"a": a, "b": b, "horses": f"{name_of.get(a,'?')}-{name_of.get(b,'?')}",
+                   "unit": bet_wide} for a, b in p["wide"]]
+    return text, picks, wide_pairs
 
 
 if __name__ == "__main__":

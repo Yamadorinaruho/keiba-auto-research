@@ -101,10 +101,13 @@ class Strat:
 
 
 def _shinba_match(h):
-    """新馬·エピ系(全戦略共通): 父系がエピファネイア/エフフォーリア × 牡のみ(2026-07-10〜, spec v2.1)。"""
-    if not (h.get("性齢") or "").startswith(spec.SHINBA_GENDER):
+    """新馬(spec v3): エピ=牡のみ / エフ・シスキン=全頭 (spec.shinba_ok)。"""
+    if not h.get("馬ID"):
         return False
-    return bool(h.get("馬ID")) and _epi(horse_sire(h["馬ID"]))
+    s = horse_sire(h["馬ID"]) or ""
+    m = re.match(r"^[^\x00-\x7f]+", s)
+    sire = m.group(0) if m else s
+    return spec.shinba_ok(sire, h.get("性齢"))
 
 
 def make_blood_filter(shiba_band, dirt_band, shiba_blood, dirt_blood,

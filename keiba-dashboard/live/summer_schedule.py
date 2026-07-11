@@ -137,12 +137,13 @@ def main():
     nb = sum(r["strat"] == "shinba" for r in races)
     bk = bankroll.load()
     unit = bankroll.daily_unit(date_iso, freeze=not preview)   # 当日の1点額(朝に凍結・前日は参考値)
-    unit_sb = bankroll.daily_unit(date_iso, freeze=not preview, strat="shinba")   # 新馬のみ残高2.0%(2026-07-10〜)
+    unit_sb = bankroll.daily_unit(date_iso, freeze=not preview, strat="shinba")   # 新馬単勝 残高1.0%(v3 2026-07-12〜)
+    unit_sw = bankroll.daily_unit(date_iso, freeze=not preview, strat="shinba_wide")   # 新馬ワイド1ペア 0.5%(手動)
     head = f"📅 *夏戦略 {'明日' if preview else ''}対象レース {date_iso[5:].replace('-','/')}*" \
            + (" (前日20時プレビュー)" if preview else "")
     lines = ["━━━━━━━━━━━━━━",
              f"{head} (芝{ns}R / ダ{nd}R / 新馬{nb}R)",
-             f"💰 *1点 芝ダ¥{unit:,} / 新馬¥{unit_sb:,}* (残高¥{bk['balance']:,}×{bankroll.FRAC:.1%}/{bankroll.SHINBA_FRAC:.1%}{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
+             f"💰 *1点 芝ダ¥{unit:,} / 新馬単¥{unit_sb:,} / 新馬ワイド¥{unit_sw:,}* (残高¥{bk['balance']:,}×{bankroll.FRAC:.1%}/{bankroll.SHINBA_FRAC:.1%}/{bankroll.SHINBA_WIDE_FRAC:.1%}{('・上限¥'+format(bankroll.CAP,',')) if bankroll.CAP else ''})",
              "_v2血統フィルタ: 対象血統(芝=ディープ/サンデー他/カナロア・ダ=米国系)×3走目以上を全頭買い。score無し_",
              f"_買い目は単勝オッズ帯(芝{spec.band_str(spec.SHIBA_BAND)}/ダ{spec.band_str(spec.DIRT_BAND)})を発走15分前以内に判定。⚠️帯外は対象外_",
              "_オッズ・人気は朝時点の暫定（未発売は無表示／締切まで変動＝帯判定も変わり得る）_"]
@@ -156,10 +157,13 @@ def main():
             _, omap = live_odds(r["race_id"])   # 朝の暫定オッズ(未発売なら空)
         except Exception:
             omap = {}
-        if r["strat"] == "shinba":   # 新馬エピ系: 構造スコアなし。対象産駒を列挙
-            lines.append(f"\n*{r['post']} [新馬]{r['venue']}{r['rno']}R* {rn} {dist}(エピ系全頭買い)")
+        if r["strat"] == "shinba":   # 新馬v3: 単勝=エピ牡+エフ+シスキン / ワイドBOX=対象2頭以上(牡牝込み)
+            n_wide = len(r["cands"]) * (len(r["cands"]) - 1) // 2 if len(r["cands"]) >= 2 else 0
+            wtag = f"・ワイドBOX{n_wide}点" if n_wide else ""
+            lines.append(f"\n*{r['post']} [新馬]{r['venue']}{r['rno']}R* {rn} {dist}(単勝全頭{wtag})")
             for c in r["cands"]:
-                lines.append(f"  {c['umaban']}番 {c['horse']} (父{c['sire']}){odds_str(omap, c['umaban'])}")
+                tag = "" if c.get("win", True) else " (ワイドのみ)"
+                lines.append(f"  {c['umaban']}番 {c['horse']} (父{c['sire']}){odds_str(omap, c['umaban'])}{tag}")
             continue
         tag = "芝" if r["strat"] == "shiba" else "ダ"
         lo_band, hi_band = (15, 80) if r["strat"] == "shiba" else (10, 80)

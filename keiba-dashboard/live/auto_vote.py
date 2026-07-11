@@ -80,11 +80,13 @@ def plan_bets(date, now=None, all_races=False):
     max_races = os.environ.get("AUTOVOTE_MAX_RACES")
     only_strat = os.environ.get("AUTOVOTE_ONLY_STRAT")   # 設定時はその戦略のみ投票(テスト用 例: shinba)
     unit = int(force) if force else bankroll.daily_unit(date_iso)   # 当日の1点額(通知・収支と同一)
-    unit_shinba = int(force) if force else bankroll.daily_unit(date_iso, strat="shinba")   # 新馬のみ残高1.0%
+    unit_shinba = int(force) if force else bankroll.daily_unit(date_iso, strat="shinba")   # 新馬単勝 残高1.0%
+    unit_wide = int(force) if force else bankroll.daily_unit(date_iso, strat="shinba_wide")  # 新馬ワイド 0.5%/ペア
     plan, used_races = [], set()
     for r in sched.get("races", []):
         picks = r.get("picks") or []
-        if not picks:
+        wide_pairs = r.get("wide_pairs") or []
+        if not picks and not wide_pairs:
             continue
         if only_strat and r.get("strat") != only_strat:
             continue   # 戦略フィルタ(指定戦略以外は投票しない)
@@ -98,9 +100,19 @@ def plan_bets(date, now=None, all_races=False):
             if pk["umaban"] in already:
                 continue   # 二重投票ガード
             plan.append({"race_id": r["race_id"], "venue": r["venue"], "rno": r["rno"],
-                         "post": r["post"], "strat": strat, "umaban": pk["umaban"],
+                         "post": r["post"], "strat": strat, "bet_type": "win", "umaban": pk["umaban"],
                          "horse": pk.get("horse", ""), "amount": amount,
                          "info": pk.get("lin") or pk.get("score"), "lead": round(lead, 1)})
+            used_races.add(r["race_id"])
+        for wp in wide_pairs:   # 新馬ワイドBOX(v3 2026-07-12): ガードキーは "W{a}-{b}"
+            wkey = f"W{wp['a']}-{wp['b']}"
+            if wkey in already:
+                continue
+            plan.append({"race_id": r["race_id"], "venue": r["venue"], "rno": r["rno"],
+                         "post": r["post"], "strat": strat, "bet_type": "wide",
+                         "umaban": wp["a"], "umaban2": wp["b"],
+                         "horse": wp.get("horses", ""), "amount": unit_wide,
+                         "info": "wideBOX", "lead": round(lead, 1)})
             used_races.add(r["race_id"])
         if max_races and len(used_races) >= int(max_races):
             break
@@ -110,14 +122,17 @@ def plan_bets(date, now=None, all_races=False):
 def format_plan(plan):
     if not plan:
         return "投票プランなし(対象レース/picksなし or 全て投票済み)"
-    lines, total = ["━━━ 自動投票プラン(単勝) ━━━"], 0
+    lines, total = ["━━━ 自動投票プラン(単勝+ワイド) ━━━"], 0
     cur = None
     for b in plan:
         if b["race_id"] != cur:
             cur = b["race_id"]
             lines.append(f"\n{b['post']} {b['venue']}{b['rno']}R [{b['strat']}] (発走{b['lead']}分前)")
         total += b["amount"]
-        lines.append(f"  単勝 {b['umaban']}番 {b['horse']} ¥{b['amount']:,} ({b.get('info') or '-'})")
+        if b.get("bet_type") == "wide":
+            lines.append(f"  ワイド {b['umaban']}-{b['umaban2']} {b['horse']} ¥{b['amount']:,}")
+        else:
+            lines.append(f"  単勝 {b['umaban']}番 {b['horse']} ¥{b['amount']:,} ({b.get('info') or '-'})")
     lines.append(f"\n合計 {len(plan)}点 / ¥{total:,}")
     return "\n".join(lines)
 

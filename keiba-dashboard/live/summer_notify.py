@@ -193,7 +193,8 @@ def main():
                     text, picks = summer_dirt.process_race(r, date_iso, lead_i, unit)
                 else:
                     from live import summer_shinba
-                    text, picks = summer_shinba.process_race(r, date_iso, lead_i, unit_shinba)
+                    text, picks, wide_pairs = summer_shinba.process_race(r, date_iso, lead_i, unit_shinba)
+                    r["wide_pairs"] = wide_pairs   # ワイドBOXは手動投票(auto_vote対象外)・記録用
             except Exception as e:
                 print(f"[err-{r.get('strat')}] {r['race_id']}: {e}")
                 continue

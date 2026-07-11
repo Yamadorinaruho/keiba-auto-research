@@ -23,7 +23,8 @@ PATH = os.path.join(STATE_DIR, "bankroll.json")
 
 INIT = 200000      # 初期資金
 FRAC = 0.005       # 1点あたり = 残高の0.5%(芝・ダート)
-SHINBA_FRAC = 0.02 # 新馬のみ = 残高の2.0%(2026-07-10 ユーザー決定, 牡のみ化とセット)
+SHINBA_FRAC = 0.01       # 新馬・単勝 = 残高の1.0%(2026-07-12 v3でユーザー決定。2.0%から減額)
+SHINBA_WIDE_FRAC = 0.005 # 新馬・ワイドBOX = 1ペアあたり残高の0.5%(2026-07-12 v3新設・手動投票)
 CAP = None         # 1点上限。当面なし(残高が大きくなったら数値を入れて再設定)
 MIN_UNIT = 100     # 馬券最小単位
 
@@ -50,18 +51,21 @@ def unit_for(balance, frac=FRAC):
 
 
 def daily_unit(date_iso, freeze=True, strat=None):
-    """当日の1点額を返す。strat="shinba"なら新馬用(残高1.0%)、それ以外は0.5%。
-    当日未凍結なら現残高から両ユニットを算出して凍結(freeze=Trueのとき保存)。"""
+    """当日の1点額を返す。strat="shinba"=新馬単勝(1.0%) / "shinba_wide"=新馬ワイド1ペア(0.5%) /
+    それ以外は芝ダ(0.5%)。当日未凍結なら現残高から全ユニットを算出して凍結(freeze=Trueのとき保存)。"""
     d = load()
-    key = "unit_shinba" if strat == "shinba" else "unit"
+    KEYS = {"shinba": "unit_shinba", "shinba_wide": "unit_shinba_wide"}
+    FRACS = {"shinba": SHINBA_FRAC, "shinba_wide": SHINBA_WIDE_FRAC}
+    key = KEYS.get(strat, "unit")
     if d.get("unit_date") == date_iso and d.get(key):
         return d[key]
     if d.get("unit_date") != date_iso:
         d["unit"] = unit_for(d["balance"])
         d["unit_shinba"] = unit_for(d["balance"], SHINBA_FRAC)
+        d["unit_shinba_wide"] = unit_for(d["balance"], SHINBA_WIDE_FRAC)
         d["unit_date"] = date_iso
-    else:   # 同日で片方だけ未設定(旧形式からの移行時)はそのキーだけ補完
-        d[key] = unit_for(d["balance"], SHINBA_FRAC if strat == "shinba" else FRAC)
+    else:   # 同日で一部キーだけ未設定(旧形式からの移行時)はそのキーだけ補完
+        d[key] = unit_for(d["balance"], FRACS.get(strat, FRAC))
     if freeze:
         save(d)
     return d[key]

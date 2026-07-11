@@ -120,8 +120,10 @@ def get_race_ids_for_date(yyyymmdd):
     return sorted(rids)
 
 
-def parse_shutuba(race_id):
-    """出走表ページから出走馬リスト取得"""
+def parse_shutuba(race_id, _retry=True):
+    """出走表ページから出走馬リスト取得。
+    枠順確定前に取得した「出走馬0頭」のキャッシュを掴んだら1回だけ強制再取得する
+    (2026-07-12: 空キャッシュで函館5R等がスケジュールから漏れた事故の再発防止)。"""
     url = f"https://race.netkeiba.com/race/shutuba.html?race_id={race_id}"
     html = fetch(url, cache_key=f"shutuba_{race_id}.html")
     soup = BeautifulSoup(html, "html.parser")
@@ -199,6 +201,9 @@ def parse_shutuba(race_id):
         except Exception as e:
             continue
 
+    if not horses and _retry:   # 空キャッシュ(枠順確定前取得)の疑い→強制再取得して1回だけやり直し
+        fetch(url, cache_key=f"shutuba_{race_id}.html", force=True)
+        return parse_shutuba(race_id, _retry=False)
     return {"race_id": race_id, "race_name": race_name,
             "surface": surface, "distance": distance, "class": class_str,
             "horses": horses}
