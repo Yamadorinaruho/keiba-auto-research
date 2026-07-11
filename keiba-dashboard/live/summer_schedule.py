@@ -78,6 +78,11 @@ def main():
     shinba_on = spec.in_window("shinba", date)
     races = []
     race_ids = get_race_ids_for_date(date)
+    # 毎日20時プレビュー化(2026-07-12): 翌日にJRA開催が無い夜は黙ってスキップ
+    # (火〜木の夜などに「対象レースなし」をSlackに流さない。開催日で対象ゼロの場合は従来通り通知する)
+    if preview and not race_ids:
+        print(f"[preview skip] {date_iso} は開催なし(レース一覧0件)。通知せず終了")
+        return
     for rid in race_ids:   # 全会場走査(ダートは全場対象)
         venue = VENUE.get(rid[4:6])
         try:
