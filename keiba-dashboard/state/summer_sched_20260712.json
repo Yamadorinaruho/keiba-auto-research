@@ -169,12 +169,12 @@
     {
      "umaban": 6,
      "horse": "シャンデリュイーズ",
-     "rel": 0.4117647058823529,
-     "fin": 12,
+     "rel": 0.16666666666666666,
+     "fin": 3,
      "lin": "ディープ系",
      "lin_via": null,
      "sire": "ダノンキングリー",
-     "n_prev": 5,
+     "n_prev": 6,
      "pstat": null
     },
     {
@@ -324,23 +324,23 @@
     {
      "umaban": 2,
      "horse": "ボーントゥラブユー",
-     "rel": 0.2,
-     "fin": 5,
+     "rel": 0.1875,
+     "fin": 6,
      "lin": "ディープ系",
      "lin_via": null,
      "sire": "コントレイル",
-     "n_prev": 7,
+     "n_prev": 8,
      "pstat": null
     },
     {
      "umaban": 3,
      "horse": "ダンツアラーム",
-     "rel": 0.9090909090909091,
-     "fin": 5,
+     "rel": 0.8125,
+     "fin": 8,
      "lin": "ディープ系",
      "lin_via": null,
      "sire": "リアルスティール",
-     "n_prev": 7,
+     "n_prev": 8,
      "pstat": null
     },
     {
@@ -357,12 +357,12 @@
     {
      "umaban": 5,
      "horse": "ビアーレ",
-     "rel": 0.1875,
-     "fin": 5,
+     "rel": 0.3125,
+     "fin": 11,
      "lin": "米国系",
      "lin_via": null,
      "sire": "ミスチヴィアスアレックスMischevious Alex",
-     "n_prev": 3,
+     "n_prev": 4,
      "pstat": null
     },
     {
@@ -379,23 +379,23 @@
     {
      "umaban": 7,
      "horse": "ベネディクション",
-     "rel": 0.8125,
-     "fin": 6,
+     "rel": 0.5,
+     "fin": 2,
      "lin": "ロベルト系",
      "lin_via": null,
      "sire": "エピファネイア",
-     "n_prev": 6,
+     "n_prev": 7,
      "pstat": null
     },
     {
      "umaban": 8,
      "horse": "アルケミラモリス",
-     "rel": 0.5,
-     "fin": 5,
+     "rel": 0.125,
+     "fin": 6,
      "lin": "ディープ系",
      "lin_via": null,
      "sire": "ロジャーバローズ",
-     "n_prev": 6,
+     "n_prev": 7,
      "pstat": null
     },
     {
@@ -746,12 +746,12 @@
     {
      "umaban": 9,
      "horse": "フェブリノ",
-     "rel": 0.1111111111111111,
-     "fin": 3,
+     "rel": 0.125,
+     "fin": 4,
      "lin": "欧州系",
      "lin_via": null,
      "sire": "マクフィMakfi",
-     "n_prev": 10,
+     "n_prev": 11,
      "pstat": null
     },
     {
@@ -806,46 +806,6 @@
      "sire": "エピファネイア",
      "win": true
     }
-   ],
-   "picks": [
-    {
-     "umaban": 1,
-     "horse": "ジオ",
-     "odds_pre": 7.3,
-     "sire": "シスキン"
-    },
-    {
-     "umaban": 5,
-     "horse": "イッペイ",
-     "odds_pre": 1.9,
-     "sire": "エフフォーリア"
-    },
-    {
-     "umaban": 9,
-     "horse": "トムクリオーザ",
-     "odds_pre": 14.8,
-     "sire": "エピファネイア"
-    }
-   ],
-   "wide_pairs": [
-    {
-     "a": 1,
-     "b": 5,
-     "horses": "ジオ-イッペイ",
-     "unit": 900
-    },
-    {
-     "a": 1,
-     "b": 9,
-     "horses": "ジオ-トムクリオーザ",
-     "unit": 900
-    },
-    {
-     "a": 5,
-     "b": 9,
-     "horses": "イッペイ-トムクリオーザ",
-     "unit": 900
-    }
    ]
   },
   {
@@ -869,22 +829,6 @@
      "horse": "シックパラソル",
      "sire": "エピファネイア",
      "win": false
-    }
-   ],
-   "picks": [
-    {
-     "umaban": 1,
-     "horse": "サイモンレガシー",
-     "odds_pre": 6.8,
-     "sire": "エフフォーリア"
-    }
-   ],
-   "wide_pairs": [
-    {
-     "a": 1,
-     "b": 6,
-     "horses": "サイモンレガシー-シックパラソル",
-     "unit": 900
     }
    ]
   },
@@ -934,12 +878,12 @@
     {
      "umaban": 6,
      "horse": "ハナイロマヒナ",
-     "rel": 0.26666666666666666,
+     "rel": 0.8181818181818182,
      "fin": 7,
      "lin": "欧州系",
      "lin_via": null,
      "sire": "ロゴタイプ",
-     "n_prev": 5,
+     "n_prev": 6,
      "pstat": null
     },
     {
@@ -1011,12 +955,12 @@
     {
      "umaban": 16,
      "horse": "ルーチェコメット",
-     "rel": 0.625,
-     "fin": 6,
+     "rel": 0.6875,
+     "fin": 7,
      "lin": "ディープ系",
      "lin_via": null,
      "sire": "ダノンキングリー",
-     "n_prev": 2,
+     "n_prev": 3,
      "pstat": null
     }
    ]
@@ -1211,12 +1155,12 @@
     {
      "umaban": 9,
      "horse": "ウインディナナコ",
-     "rel": 0.4375,
-     "fin": 11,
+     "rel": 0.6666666666666666,
+     "fin": 4,
      "lin": "ディープ系",
      "lin_via": null,
      "sire": "ミッキーアイル",
-     "n_prev": 1,
+     "n_prev": 2,
      "pstat": null
     },
     {
