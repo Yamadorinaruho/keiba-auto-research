@@ -116,19 +116,19 @@
     {
      "umaban": 16,
      "horse": "ナオミニオールイン",
-     "odds_pre": 36.0,
+     "odds_pre": 38.7,
      "lin": "ディープ系"
     },
     {
      "umaban": 7,
      "horse": "テイクマイハート",
-     "odds_pre": 25.8,
+     "odds_pre": 27.2,
      "lin": "カナロア系"
     },
     {
      "umaban": 9,
      "horse": "ダノンルミエール",
-     "odds_pre": 18.0,
+     "odds_pre": 17.8,
      "lin": "カナロア系"
     }
    ]
@@ -322,6 +322,32 @@
      "sire": "アドマイヤマーズ",
      "n_prev": 5,
      "pstat": null
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 13,
+     "horse": "メイショウバルキア",
+     "odds_pre": 77.2,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 12,
+     "horse": "マコトエウロペ",
+     "odds_pre": 45.4,
+     "lin": "カナロア系"
+    },
+    {
+     "umaban": 3,
+     "horse": "ゴールドアベニュー",
+     "odds_pre": 34.3,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 2,
+     "horse": "ワラビガミ",
+     "odds_pre": 19.0,
+     "lin": "ディープ系"
     }
    ]
   },
