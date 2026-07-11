@@ -111,6 +111,26 @@
      "n_prev": 5,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 16,
+     "horse": "ナオミニオールイン",
+     "odds_pre": 33.3,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 7,
+     "horse": "テイクマイハート",
+     "odds_pre": 23.7,
+     "lin": "カナロア系"
+    },
+    {
+     "umaban": 9,
+     "horse": "ダノンルミエール",
+     "odds_pre": 18.4,
+     "lin": "カナロア系"
+    }
    ]
   },
   {
