@@ -328,24 +328,30 @@
     {
      "umaban": 12,
      "horse": "マコトエウロペ",
-     "odds_pre": 56.2,
+     "odds_pre": 59.8,
      "lin": "カナロア系"
     },
     {
      "umaban": 3,
      "horse": "ゴールドアベニュー",
-     "odds_pre": 39.7,
+     "odds_pre": 41.3,
      "lin": "サンデー系他"
     },
     {
      "umaban": 2,
      "horse": "ワラビガミ",
-     "odds_pre": 17.8,
+     "odds_pre": 19.3,
      "lin": "ディープ系"
     },
     {
      "umaban": 14,
      "horse": "タイセイアビオン",
+     "odds_pre": 15.3,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 16,
+     "horse": "ビシェノ",
      "odds_pre": 15.0,
      "lin": "ディープ系"
     }
