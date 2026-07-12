@@ -1200,6 +1200,26 @@
      "n_prev": 4,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 3,
+     "horse": "ジャメビュ",
+     "odds_pre": 35.8,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 9,
+     "horse": "オスロクィーン",
+     "odds_pre": 20.0,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 10,
+     "horse": "ジェムシリカ",
+     "odds_pre": 14.0,
+     "lin": "米国系"
+    }
    ]
   },
   {
