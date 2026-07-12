@@ -1378,21 +1378,21 @@
    ],
    "picks": [
     {
-     "umaban": 13,
-     "horse": "スイートハイデン",
-     "odds_pre": 45.2,
-     "lin": "ディープ系"
-    },
-    {
      "umaban": 8,
      "horse": "フライスカイハイ",
-     "odds_pre": 37.2,
+     "odds_pre": 38.8,
      "lin": "カナロア系"
+    },
+    {
+     "umaban": 13,
+     "horse": "スイートハイデン",
+     "odds_pre": 35.8,
+     "lin": "ディープ系"
     },
     {
      "umaban": 7,
      "horse": "リナシタ",
-     "odds_pre": 27.8,
+     "odds_pre": 28.2,
      "lin": "カナロア系"
     }
    ]
