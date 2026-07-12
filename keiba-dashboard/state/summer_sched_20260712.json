@@ -903,19 +903,19 @@
     {
      "umaban": 1,
      "horse": "ジオ",
-     "odds_pre": 9.5,
+     "odds_pre": 9.7,
      "sire": "シスキン"
     },
     {
      "umaban": 5,
      "horse": "イッペイ",
-     "odds_pre": 2.2,
+     "odds_pre": 2.4,
      "sire": "エフフォーリア"
     },
     {
      "umaban": 9,
      "horse": "トムクリオーザ",
-     "odds_pre": 10.0,
+     "odds_pre": 9.3,
      "sire": "エピファネイア"
     }
    ]
@@ -941,6 +941,22 @@
      "horse": "シックパラソル",
      "sire": "エピファネイア",
      "win": false
+    }
+   ],
+   "wide_pairs": [
+    {
+     "a": 1,
+     "b": 6,
+     "horses": "サイモンレガシー-シックパラソル",
+     "unit": 900
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 1,
+     "horse": "サイモンレガシー",
+     "odds_pre": 7.1,
+     "sire": "エフフォーリア"
     }
    ]
   },
