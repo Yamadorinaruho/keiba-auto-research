@@ -745,14 +745,7 @@
      "pstat": null
     }
    ],
-   "picks": [
-    {
-     "umaban": 12,
-     "horse": "デイズインザサン",
-     "odds_pre": 74.0,
-     "lin": "ディープ系"
-    }
-   ]
+   "picks": []
   },
   {
    "race_id": "202610020604",
@@ -840,6 +833,26 @@
      "sire": "リオンディーズ",
      "n_prev": 3,
      "pstat": null
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 10,
+     "horse": "シャドウクライ",
+     "odds_pre": 76.8,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 4,
+     "horse": "スリーロンドン",
+     "odds_pre": 49.0,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 5,
+     "horse": "ウインラブソング",
+     "odds_pre": 39.2,
+     "lin": "サンデー系他"
     }
    ]
   },
