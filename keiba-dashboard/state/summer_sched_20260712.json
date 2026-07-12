@@ -1096,13 +1096,19 @@
     {
      "umaban": 16,
      "horse": "ルーチェコメット",
-     "odds_pre": 63.1,
+     "odds_pre": 61.9,
      "lin": "ディープ系"
     },
     {
      "umaban": 8,
      "horse": "フォルストランキル",
-     "odds_pre": 15.1,
+     "odds_pre": 17.0,
+     "lin": "サンデー系他"
+    },
+    {
+     "umaban": 1,
+     "horse": "ミルトメロディー",
+     "odds_pre": 15.2,
      "lin": "サンデー系他"
     }
    ]
