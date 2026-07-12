@@ -1091,13 +1091,33 @@
      "n_prev": 3,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 4,
+     "horse": "ビップジョワ",
+     "odds_pre": 78.5,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 16,
+     "horse": "ルーチェコメット",
+     "odds_pre": 53.2,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 8,
+     "horse": "フォルストランキル",
+     "odds_pre": 16.3,
+     "lin": "サンデー系他"
+    }
    ]
   },
   {
    "race_id": "202603020606",
    "venue": "福島",
    "rno": 6,
-   "post": "13:00",
+   "post": "13:01",
    "race_name": "3歳未勝利",
    "distance": 1150,
    "notified": false,
