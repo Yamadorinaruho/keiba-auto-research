@@ -668,13 +668,13 @@
     {
      "umaban": 1,
      "horse": "ウッケン",
-     "odds_pre": 53.8,
+     "odds_pre": 57.4,
      "lin": "サンデー系他"
     },
     {
      "umaban": 13,
      "horse": "ブライスフェアリー",
-     "odds_pre": 28.8,
+     "odds_pre": 29.8,
      "lin": "サンデー系他"
     }
    ]
@@ -743,6 +743,14 @@
      "sire": "ハービンジャーHarbinger",
      "n_prev": 9,
      "pstat": null
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 12,
+     "horse": "デイズインザサン",
+     "odds_pre": 72.7,
+     "lin": "ディープ系"
     }
    ]
   },
