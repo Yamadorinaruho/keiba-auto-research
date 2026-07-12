@@ -467,20 +467,26 @@
     {
      "umaban": 12,
      "horse": "ワンダージェム",
-     "odds_pre": 61.1,
+     "odds_pre": 59.9,
      "lin": "ディープ系"
     },
     {
      "umaban": 4,
      "horse": "スリールーディカ",
-     "odds_pre": 31.0,
+     "odds_pre": 32.7,
      "lin": "ディープ系"
     },
     {
      "umaban": 11,
      "horse": "サウンドファミリエ",
-     "odds_pre": 21.5,
+     "odds_pre": 21.0,
      "lin": "ディープ系"
+    },
+    {
+     "umaban": 6,
+     "horse": "プリュイドール",
+     "odds_pre": 15.1,
+     "lin": "サンデー系他"
     }
    ]
   },
@@ -574,15 +580,9 @@
    ],
    "picks": [
     {
-     "umaban": 11,
-     "horse": "ジョーヴェスタ",
-     "odds_pre": 63.6,
-     "lin": "米国系"
-    },
-    {
      "umaban": 2,
      "horse": "ペコリズム",
-     "odds_pre": 54.1,
+     "odds_pre": 58.8,
      "lin": "米国系"
     }
    ]
