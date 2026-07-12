@@ -100,14 +100,7 @@
      "pstat": null
     }
    ],
-   "picks": [
-    {
-     "umaban": 1,
-     "horse": "ニシノギャルズ",
-     "odds_pre": 78.3,
-     "lin": "米国系"
-    }
-   ]
+   "picks": []
   },
   {
    "race_id": "202610020601",
@@ -311,7 +304,7 @@
     {
      "umaban": 1,
      "horse": "リザレクティア",
-     "odds_pre": 57.9,
+     "odds_pre": 57.8,
      "lin": "カナロア系"
     }
    ]
