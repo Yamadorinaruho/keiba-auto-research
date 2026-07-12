@@ -903,19 +903,19 @@
     {
      "umaban": 1,
      "horse": "ジオ",
-     "odds_pre": 9.7,
+     "odds_pre": 10.2,
      "sire": "シスキン"
     },
     {
      "umaban": 5,
      "horse": "イッペイ",
-     "odds_pre": 2.4,
+     "odds_pre": 2.6,
      "sire": "エフフォーリア"
     },
     {
      "umaban": 9,
      "horse": "トムクリオーザ",
-     "odds_pre": 9.3,
+     "odds_pre": 8.9,
      "sire": "エピファネイア"
     }
    ]
@@ -955,7 +955,7 @@
     {
      "umaban": 1,
      "horse": "サイモンレガシー",
-     "odds_pre": 7.1,
+     "odds_pre": 7.3,
      "sire": "エフフォーリア"
     }
    ]
