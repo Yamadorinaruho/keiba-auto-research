@@ -148,7 +148,13 @@
     {
      "umaban": 10,
      "horse": "コシタンタン",
-     "odds_pre": 13.4,
+     "odds_pre": 15.2,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 2,
+     "horse": "メモリーデイズ",
+     "odds_pre": 10.6,
      "lin": "米国系"
     }
    ]
