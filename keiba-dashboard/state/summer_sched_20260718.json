@@ -284,13 +284,13 @@
     {
      "umaban": 12,
      "horse": "アルウラメファ",
-     "odds_pre": 16.8,
+     "odds_pre": 17.1,
      "lin": "米国系"
     },
     {
      "umaban": 7,
      "horse": "メイショウマドンナ",
-     "odds_pre": 11.1,
+     "odds_pre": 10.1,
      "lin": "米国系"
     }
    ]
@@ -414,6 +414,26 @@
      "sire": "アジアエクスプレス",
      "n_prev": 9,
      "pstat": null
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 10,
+     "horse": "ライブリピュア",
+     "odds_pre": 57.8,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 2,
+     "horse": "サクラボーベル",
+     "odds_pre": 13.6,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 15,
+     "horse": "セントリアン",
+     "odds_pre": 13.6,
+     "lin": "米国系"
     }
    ]
   },
