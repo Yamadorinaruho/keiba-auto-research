@@ -284,13 +284,7 @@
     {
      "umaban": 12,
      "horse": "アルウラメファ",
-     "odds_pre": 17.1,
-     "lin": "米国系"
-    },
-    {
-     "umaban": 7,
-     "horse": "メイショウマドンナ",
-     "odds_pre": 10.1,
+     "odds_pre": 17.7,
      "lin": "米国系"
     }
    ]
@@ -420,19 +414,19 @@
     {
      "umaban": 10,
      "horse": "ライブリピュア",
-     "odds_pre": 57.8,
-     "lin": "米国系"
-    },
-    {
-     "umaban": 2,
-     "horse": "サクラボーベル",
-     "odds_pre": 13.6,
+     "odds_pre": 61.0,
      "lin": "米国系"
     },
     {
      "umaban": 15,
      "horse": "セントリアン",
-     "odds_pre": 13.6,
+     "odds_pre": 14.3,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 2,
+     "horse": "サクラボーベル",
+     "odds_pre": 12.3,
      "lin": "米国系"
     }
    ]
