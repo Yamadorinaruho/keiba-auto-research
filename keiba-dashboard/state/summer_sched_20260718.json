@@ -414,19 +414,19 @@
     {
      "umaban": 10,
      "horse": "ライブリピュア",
-     "odds_pre": 64.9,
+     "odds_pre": 67.8,
      "lin": "米国系"
     },
     {
      "umaban": 15,
      "horse": "セントリアン",
-     "odds_pre": 14.6,
+     "odds_pre": 14.7,
      "lin": "米国系"
     },
     {
      "umaban": 2,
      "horse": "サクラボーベル",
-     "odds_pre": 12.4,
+     "odds_pre": 12.7,
      "lin": "米国系"
     }
    ]
@@ -550,6 +550,20 @@
      "sire": "ジャスタウェイ",
      "n_prev": 4,
      "pstat": null
+    }
+   ],
+   "picks": [
+    {
+     "umaban": 10,
+     "horse": "メカニックバレエ",
+     "odds_pre": 42.8,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 16,
+     "horse": "ヨドノサファイア",
+     "odds_pre": 20.1,
+     "lin": "サンデー系他"
     }
    ]
   },
