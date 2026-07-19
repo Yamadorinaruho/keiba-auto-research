@@ -115,7 +115,13 @@
     {
      "umaban": 3,
      "horse": "ハネマン",
-     "odds_pre": 57.6,
+     "odds_pre": 50.9,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 7,
+     "horse": "ミスチヴマリアンヌ",
+     "odds_pre": 10.0,
      "lin": "米国系"
     }
    ]
