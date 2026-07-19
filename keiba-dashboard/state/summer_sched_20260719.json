@@ -584,6 +584,20 @@
      "n_prev": 8,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 9,
+     "horse": "シルバーゴールド",
+     "odds_pre": 28.0,
+     "lin": "ディープ系"
+    },
+    {
+     "umaban": 13,
+     "horse": "ベルランコントル",
+     "odds_pre": 18.7,
+     "lin": "サンデー系他"
+    }
    ]
   },
   {
