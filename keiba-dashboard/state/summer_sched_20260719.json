@@ -115,19 +115,19 @@
     {
      "umaban": 3,
      "horse": "ハネマン",
-     "odds_pre": 65.1,
+     "odds_pre": 63.6,
      "lin": "米国系"
     },
     {
      "umaban": 7,
      "horse": "ミスチヴマリアンヌ",
-     "odds_pre": 14.4,
+     "odds_pre": 15.7,
      "lin": "米国系"
     },
     {
      "umaban": 5,
      "horse": "ミスマラッカ",
-     "odds_pre": 12.0,
+     "odds_pre": 13.2,
      "lin": "米国系"
     }
    ]
@@ -321,9 +321,15 @@
    ],
    "picks": [
     {
+     "umaban": 7,
+     "horse": "キリスパークル",
+     "odds_pre": 74.7,
+     "lin": "ディープ系"
+    },
+    {
      "umaban": 5,
      "horse": "フジサン",
-     "odds_pre": 16.4,
+     "odds_pre": 16.8,
      "lin": "ディープ系"
     }
    ]
