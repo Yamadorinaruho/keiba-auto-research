@@ -321,15 +321,9 @@
    ],
    "picks": [
     {
-     "umaban": 7,
-     "horse": "キリスパークル",
-     "odds_pre": 77.5,
-     "lin": "ディープ系"
-    },
-    {
      "umaban": 5,
      "horse": "フジサン",
-     "odds_pre": 18.7,
+     "odds_pre": 19.5,
      "lin": "ディープ系"
     }
    ]
@@ -481,7 +475,7 @@
     {
      "umaban": 14,
      "horse": "ホッコームジカ",
-     "odds_pre": 32.4,
+     "odds_pre": 31.6,
      "lin": "ディープ系"
     }
    ]
