@@ -99,6 +99,20 @@
      "n_prev": 3,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 8,
+     "horse": "レヴヴィ",
+     "odds_pre": 21.1,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 6,
+     "horse": "ロングフルスペック",
+     "odds_pre": 14.8,
+     "lin": "米国系"
+    }
    ]
   },
   {
