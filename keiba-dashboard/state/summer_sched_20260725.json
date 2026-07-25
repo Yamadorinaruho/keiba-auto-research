@@ -299,6 +299,26 @@
      "n_prev": 6,
      "pstat": null
     }
+   ],
+   "picks": [
+    {
+     "umaban": 11,
+     "horse": "スウェーバック",
+     "odds_pre": 35.8,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 5,
+     "horse": "シャインネージュ",
+     "odds_pre": 20.0,
+     "lin": "米国系"
+    },
+    {
+     "umaban": 9,
+     "horse": "ロジザボード",
+     "odds_pre": 13.2,
+     "lin": "米国系"
+    }
    ]
   },
   {
