@@ -27,7 +27,7 @@
     {
      "umaban": 1,
      "horse": "ソニックブーム",
-     "odds_pre": 25.8,
+     "odds_pre": 30.4,
      "lin": "ディープ系"
     }
    ]
@@ -155,15 +155,9 @@
    ],
    "picks": [
     {
-     "umaban": 10,
-     "horse": "キタノシオン",
-     "odds_pre": 78.7,
-     "lin": "米国系"
-    },
-    {
      "umaban": 13,
      "horse": "ローズオブジャパン",
-     "odds_pre": 23.1,
+     "odds_pre": 22.0,
      "lin": "米国系"
     }
    ]
